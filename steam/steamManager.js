@@ -42,7 +42,12 @@ const login = (accountName, password, twoFactorCode) => {
     steamClient = client
 }
 
+const getChatBot = () => {
+    return chatBot
+}
+
 module.exports = {
     getClient,
-    login
+    login,
+    getChatBot
 }

@@ -1,6 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const logger = require('../logger');
-const steamChatBot = require('../steam/steamChatBot')
+let steamChatBot = null
 
 let chatID = null
 const username = process.env.TELEGRAM_USER
@@ -93,6 +93,11 @@ const invalidState = (msg, checkOnlyUser) => {
     return false
 }
 
+const setSteamChatBot = (bot) => {
+    steamChatBot = bot
+}
+
 module.exports = {
-    sendMessageToSelf
+    sendMessageToSelf,
+    setSteamChatBot
 }

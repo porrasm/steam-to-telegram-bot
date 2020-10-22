@@ -10,12 +10,14 @@ if (process.argv.length >= 5) {
     process.exit(0)
 }
 
-require('./telegram/telegramBot')
+const telegramBot = require('./telegram/telegramBot')
 
 
 const main = () => {
 
-    
+    let chatBot = steam.getChatBot()
+    telegramBot.setSteamChatBot(chatBot)
+    chatBot.setTelegramBot(telegramBot)
 
 }
 

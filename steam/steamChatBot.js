@@ -1,5 +1,5 @@
 const logger = require('../logger');
-const telegramBot = require('../telegram/telegramBot')
+let telegramBot = null
 
 const startChatBot = () => {
     steamClient.on('friendMessage', function (steamID, message) {
@@ -22,7 +22,7 @@ const receiveMessage = (steamID, message) => {
 
 const sendMessage = (steamID, message) => {
     try {
-        logger.log("Sending message", {
+        logger.log("Sending Steam message to recipient", {
             to: steamID,
             message
         })
@@ -32,7 +32,12 @@ const sendMessage = (steamID, message) => {
     }
 }
 
+const setTelegramBot = (bot) => {
+    telegramBot = bot
+}
+
 module.exports = {
     startChatBot,
-    sendMessage
+    sendMessage,
+    setTelegramBot
 }
