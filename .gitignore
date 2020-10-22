@@ -1,0 +1,4 @@
+node_modules/
+.env
+bitskins*.json
+my_file*.json
