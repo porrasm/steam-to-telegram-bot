@@ -1,6 +1,7 @@
 const User = require('steam-user')
 const chatBot = require('./steamChatBot')
 const client = new User()
+var SteamTotp = require('steam-totp');
 
 global.SteamUser = User
 global.steamClient = null
@@ -40,6 +41,10 @@ const login = (accountName, password, twoFactorCode) => {
     });
 
     steamClient = client
+}
+
+const getCode = () => {
+    return SteamTotp.generateAuthCode(process.env.STEAM_SECRET);
 }
 
 const getChatBot = () => {

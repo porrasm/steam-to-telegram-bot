@@ -10,11 +10,18 @@ const logHelper = (debugOnly, text, data, ...args) => {
     const timestamp = date.toUTCString()
     const time_millis = date.getTime()
 
+    let stack = ""
+    const trace = new Error().stack
+    if (trace) {
+        stack = trace.split("\n")[3]
+    }
+
     let dataToAppend = {
         message: text,
         data: {},
         timestamp: timestamp,
-        time_millis
+        time_millis,
+        stack
     }
 
     if (data) {

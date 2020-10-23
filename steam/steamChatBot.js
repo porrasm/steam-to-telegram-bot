@@ -16,8 +16,13 @@ const startChatBot = () => {
 }
 
 const receiveMessage = (steamID, message) => {
-    sendMessage(steamID, "Received your message: " + message)
-    telegramBot.sendMessageToSelf(message, steamID)
+
+    steamClient.getPersonas([steamID]).then((res) => {
+        console.log("personas: ", res)
+        const p = res.personas[steamID]
+        console.log("p: ", p)
+        telegramBot.sendSteamMessageToTelegram(message, steamID, p.player_name)
+    })
 }
 
 const sendMessage = (steamID, message) => {

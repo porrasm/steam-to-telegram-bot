@@ -28,13 +28,35 @@ bot.on('message', (msg) => {
         return
     }
 
-    const chatId = msg.chat.id;
-   
-    logger.log("Received message", {message: msg.chat})
-
-    // send a message to the chat acknowledging receipt of their message
-    bot.sendMessage(chatId, 'Received your message');
+    if (msg.reply_to_message) {
+        onReplyToMessage(msg)
+        return
+    }
 });
+
+const onReplyToMessage = (msg) => {
+
+    const steamID = getSteamIDFromReply(msg.reply_to_message.text)
+    const text = msg.text
+
+    if (!steamID) {
+        return
+    }
+
+    logger.log("Replying to Steam message", {steamID, text})
+
+    steamChatBot.sendMessage(steamID, text)
+}
+const getSteamIDFromReply = (text) => {
+
+    let split = text.split(": ")
+    if (split.length < 1) {
+        return null
+    }
+
+    split = split[1].split("\n")
+    return split[0]
+}
 
 bot.onReplyToMessage(chatID, null, (msg) => {
     logger.log('Reply to message', msg)
@@ -43,31 +65,23 @@ bot.onReplyToMessage(chatID, null, (msg) => {
 
 //#region steam integration
 
-const sendMessageToSelf = (message, steamID) => {
+const sendSteamMessageToTelegram = (message, steamID, nickname) => {
     if (!chatID) {
         logger.log("Received message but chatID is null", message)
         return
     }
 
-    const toSend = steamID == null ? message : encapsulateMessage(steamID, message)
+    const toSend = steamID == null ? message : encapsulateMessage(message, steamID, nickname, "Steam")
 
-    bot.sendMessage(chatID, toSend).then(sent => {
+    bot.sendMessage(chatID, toSend, {parse_mode: "Markdown"}).then(sent => {
         if (steamID) {
             logger.log('Forwarded Steam message to Telegram', sent.text)
-            bot.onReplyToMessage(chatID, sent.message_id, (res) => {
-                logger.log("Received reply to Steam message on Telegram. Forwarding reply to Steam", res.text)
-                try {
-                    steamChatBot.sendMessage(steamID, res.text)
-                } catch (error) {
-                    logger.log("Error forwarding Telegram reply to Steam", error.message)
-                }
-            })
         }
     })
 }
 
-const encapsulateMessage = (sender, message) => {
-    return "Received Steam message from: " + sender + "\n\n" + message
+const encapsulateMessage = (message, senderID, nickname, messageType) => {
+    return "`(" + messageType + ") " + nickname + " : " + senderID + "`\n" + message
 }
 //#endregion
 
@@ -78,7 +92,11 @@ const invalidState = (msg, checkOnlyUser) => {
         return true
     } else {
         // proper init command???
-        chatID = msg.chat.id
+        
+        if (chatID != msg.chat.id) {
+            chatID = msg.chat.id
+            bot.sendMessage(msg.chat.id, 'Welcome! Initialized bot with current chat id: ' + chatID);
+        }
     }
 
     if (checkOnlyUser) {
@@ -98,6 +116,6 @@ const setSteamChatBot = (bot) => {
 }
 
 module.exports = {
-    sendMessageToSelf,
+    sendSteamMessageToTelegram,
     setSteamChatBot
 }
