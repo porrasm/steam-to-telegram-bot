@@ -6,7 +6,7 @@ let chatID = null
 const username = process.env.TELEGRAM_USER
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_API_KEY, {polling: true})
 
-const startSeconds = new Date().getSeconds()
+const startTime = new Date().getUTCMilliseconds()
 
 //#region  commands
 bot.onText(/\/status/, (msg, match) => {
@@ -130,8 +130,9 @@ const encapsulateMessage = (message, senderID, nickname, messageType) => {
 //#endregion
 
 const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
-    
-    if (new Date().getSeconds() - startSeconds < 2) {
+
+    if (new Date().getUTCMilliseconds() - startTime < 2000) {
+        logger.log("Time check failed: ", {nowTime, startSeconds, diff: nowTime - startSeconds})
         return true
     }
 
