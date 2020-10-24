@@ -15,7 +15,7 @@ bot.onText(/\/status/, (msg, match) => {
         return
     }
 
-    const statusString = `\`Bot status:\nRunning time: ${new Date().getHours() - startSeconds / 3600}\``
+    const statusString = `\`Bot status:\nRunning time: ${new Date().getHours() - startTime / 3600}\``
 });
 
 bot.onText(/\/online/, (msg, match) => {
@@ -132,7 +132,7 @@ const encapsulateMessage = (message, senderID, nickname, messageType) => {
 const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
 
     if (new Date().getUTCMilliseconds() - startTime < 2000) {
-        logger.log("Time check failed: ", {nowTime, startSeconds, diff: nowTime - startSeconds})
+        logger.log("Time check failed: ")
         return true
     }
 
