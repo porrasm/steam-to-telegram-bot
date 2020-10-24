@@ -16,10 +16,7 @@ const startChatBot = () => {
 }
 
 const receiveMessage = (steamID, message) => {
-
-    steamClient.getPersonas([steamID]).then((res) => {
-        console.log("personas: ", res)
-        const p = res.personas[steamID]
+    steamManager.getPersona(steamID).then((p) => {
         console.log("p: ", p)
         telegramBot.sendSteamMessageToTelegram(message, steamID, p.player_name)
     })
@@ -31,7 +28,14 @@ const sendMessage = (steamID, message) => {
             to: steamID,
             message
         })
-        steamClient.chatMessage(steamID, message)
+
+        steamClient.chat.sendFriendMessage(steamID, message).then(res => {
+            if (res.err) {
+                telegramBot.sendMessage('Failed to respond to Steam message')
+            } else {
+                telegramBot.sendMessage('Succesfully responed to message')
+            }
+        })
     } catch(e) {
         logger.log('Error sending Steam message', e.message)
     }

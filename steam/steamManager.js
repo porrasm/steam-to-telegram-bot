@@ -1,9 +1,12 @@
 const User = require('steam-user')
 const chatBot = require('./steamChatBot')
-const client = new User()
+let client = new User()
 var SteamTotp = require('steam-totp');
+const timer = require('../tools/timer');
+const telegramBot = require('../telegram/telegramBot');
 
 global.SteamUser = User
+global.steamManager = this
 global.steamClient = null
 
 const getClient = () => {
@@ -11,7 +14,10 @@ const getClient = () => {
 }
 
 const login = (accountName, password, twoFactorCode) => {
-    const client = new User()
+
+    console.log("Call login: ", new Error().stack)
+
+    client = new User()
     const apiKey = process.env.STEAM_API_KEY
 
     logger.log("Logging in...", {
@@ -28,6 +34,7 @@ const login = (accountName, password, twoFactorCode) => {
         logger.log("Logged into Steam as " + client.steamID.getSteam3RenderedID());
         // client.setPersona(SteamUser.EPersonaState.Online);
         chatBot.startChatBot()
+        telegramBot.sendMessage("Logged in on Steam as user: ", accountName)
     });
     
     client.on('error', function(e) {
@@ -37,10 +44,19 @@ const login = (accountName, password, twoFactorCode) => {
             password: "password",
             twoFactorCode,
             e
-        })     
+        })
+        telegramBot.sendMessage("Error logging in on Steam as user: ", accountName)
     });
 
     steamClient = client
+}
+
+const logout = async () => {
+    if (steamClient != null) {
+        steamClient.logOff()  
+    }
+    await timer(5000)
+    global.steamClient = null
 }
 
 const getCode = () => {
@@ -51,8 +67,25 @@ const getChatBot = () => {
     return chatBot
 }
 
+//#region tools
+const getPersona = (steamID) => {
+    return new Promise((resolve, reject)=> {
+        steamClient.getPersonas([steamID]).then((res) => {
+            try {
+                const p = res.personas[steamID]
+                resolve(p)
+            } catch(e) {
+                reject()
+            }
+        })
+    })
+}
+//#endregion
+
 module.exports = {
     getClient,
     login,
-    getChatBot
+    logout,
+    getChatBot,
+    getPersona
 }

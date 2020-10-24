@@ -6,7 +6,39 @@ let chatID = null
 const username = process.env.TELEGRAM_USER
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_API_KEY, {polling: true})
 
+const startSeconds = new Date().getSeconds()
+
 //#region  commands
+bot.onText(/\/status/, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    const statusString = `\`Bot status:\nRunning time: ${new Date().getHours() - startSeconds / 3600}\``
+});
+
+bot.onText(/\/online/, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    steamClient.setPersona(SteamUser.EPersonaState.Online)
+    bot.sendMessage(msg.chat.id, "Set you online on Steam")
+});
+
+bot.onText(/\/offline/, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    steamClient.setPersona(SteamUser.EPersonaState.Offline)
+    bot.sendMessage(msg.chat.id, "Set you offline on Steam")
+});
+
+
 bot.onText(/\/quit/, (msg, match) => {
 
     if (invalidState(msg, true)) {
@@ -15,22 +47,27 @@ bot.onText(/\/quit/, (msg, match) => {
 
     logger.log('Stop bot')
 
-    return
     bot.stopPolling()
-    bot.sendMessage(msg.chat.id, 'Stopping the bot. Goodbye!')
-    process.exit(0)
+    bot.sendMessage(msg.chat.id, 'Stopping the bot. Goodbye!').then(r => {
+        process.exit(0)
+    })
 });
 
 
 bot.on('message', (msg) => {
 
-    if (invalidState(msg)) {
-        return
-    }
-
-    if (msg.reply_to_message) {
-        onReplyToMessage(msg)
-        return
+    try {
+        if (invalidState(msg)) {
+            logger.log('Invalid state on message receive')
+            return
+        }
+    
+        if (msg.reply_to_message) {
+            onReplyToMessage(msg)
+            return
+        }
+    } catch (error) {
+        logger.log('Error on message', error.message)
     }
 });
 
@@ -64,6 +101,13 @@ bot.onReplyToMessage(chatID, null, (msg) => {
 //#endregion
 
 //#region steam integration
+const sendMessage = (message) => {
+    if (!chatID) {
+        logger.log("Trying to send Telegram message with null chatID")
+        return
+    }
+    bot.sendMessage(chatID, message)
+}
 
 const sendSteamMessageToTelegram = (message, steamID, nickname) => {
     if (!chatID) {
@@ -85,8 +129,13 @@ const encapsulateMessage = (message, senderID, nickname, messageType) => {
 }
 //#endregion
 
-const invalidState = (msg, checkOnlyUser) => {
-    if (msg.chat.username != username) {
+const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
+    
+    if (new Date().getSeconds() - startSeconds < 2) {
+        return true
+    }
+
+    if (msg.chat.username != username && !allowPublicUser) {
         logger.log("Received message from incorrect user", msg.chat)
         bot.sendMessage(msg.chat.id, 'Sorry. This is a private bot. In order to use it yourself you have to configure it manually. Check github_link for more info.');
         return true
@@ -116,6 +165,7 @@ const setSteamChatBot = (bot) => {
 }
 
 module.exports = {
+    sendMessage,
     sendSteamMessageToTelegram,
     setSteamChatBot
 }

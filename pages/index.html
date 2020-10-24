@@ -1,0 +1,35 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Telegram/Steam bot control panel</title>
+  <meta name="description" content="Steam not">
+  <meta name="author" content="porras">
+</head>
+
+<body>
+  
+  <h1>Log in to Steam account</h1>
+
+  <form method="post" action="/login" id="login_form">
+    <input type="text" name="username">
+    <input type="password" name="password">
+    <input type="text" name="code">
+    <input type="submit" value="Submit">
+</form>
+
+  <h1>Log out of Steam</h1>
+
+  <form method="post" action="/logout" id="logout_form">
+    <input type="submit" value="Submit">
+</form>
+
+<h1>Exit application</h1>
+<form method="post" action="/exit" id="exit_form">
+  <input type="submit" value="Submit">
+</form>
+
+</body>
+</html>
