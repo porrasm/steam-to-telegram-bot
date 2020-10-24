@@ -131,11 +131,6 @@ const encapsulateMessage = (message, senderID, nickname, messageType) => {
 
 const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
 
-    if (new Date().getUTCMilliseconds() - startTime < 2000) {
-        logger.log("Time check failed: ")
-        return true
-    }
-
     if (msg.chat.username != username && !allowPublicUser) {
         logger.log("Received message from incorrect user", msg.chat)
         bot.sendMessage(msg.chat.id, 'Sorry. This is a private bot. In order to use it yourself you have to configure it manually. Check github_link for more info.');
