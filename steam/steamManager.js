@@ -95,5 +95,6 @@ module.exports = {
     login,
     logout,
     getChatBot,
-    getPersona
+    getPersona,
+    getCode
 }

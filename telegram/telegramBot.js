@@ -1,5 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const logger = require('../logger');
+const steamManager = require('../steam/steamManager');
 let steamChatBot = null
 
 let chatID = null
@@ -18,6 +19,15 @@ bot.onText(/\/status/, (msg, match) => {
     }
 
     const statusString = `\`Bot status:\nRunning time: ${new Date().getHours() - startTime / 3600}\``
+});
+
+bot.onText(/\/code/, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    bot.sendMessage(msg.chat.id, steamManager.getCode())
 });
 
 bot.onText(/\/online/, (msg, match) => {
