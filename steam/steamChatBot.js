@@ -32,8 +32,6 @@ const sendMessage = (steamID, message) => {
         steamClient.chat.sendFriendMessage(steamID, message).then(res => {
             if (res.err) {
                 telegramBot.sendMessage('Failed to respond to Steam message')
-            } else {
-                telegramBot.sendMessage('Succesfully responed to message')
             }
         })
     } catch(e) {

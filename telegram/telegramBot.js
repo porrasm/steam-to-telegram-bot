@@ -8,6 +8,8 @@ const bot = new TelegramBot(process.env.TELEGRAM_BOT_API_KEY, {polling: true})
 
 const startTime = new Date().getUTCMilliseconds()
 
+let lastSteamID = null
+
 //#region  commands
 bot.onText(/\/status/, (msg, match) => {
 
@@ -66,6 +68,13 @@ bot.on('message', (msg) => {
             onReplyToMessage(msg)
             return
         }
+        
+        if (msg.text.charAt(0) != '/') {
+            if (!lastSteamID) {
+                return
+            }
+            steamChatBot.sendMessage(lastSteamID, msg.text)
+        }
     } catch (error) {
         logger.log('Error on message', error.message)
     }
@@ -107,6 +116,7 @@ const sendMessage = (message) => {
         return
     }
     bot.sendMessage(chatID, message)
+    lastSteamID = null
 }
 
 const sendSteamMessageToTelegram = (message, steamID, nickname) => {
@@ -122,6 +132,8 @@ const sendSteamMessageToTelegram = (message, steamID, nickname) => {
             logger.log('Forwarded Steam message to Telegram', sent.text)
         }
     })
+    
+    lastSteamID = steamID
 }
 
 const encapsulateMessage = (message, senderID, nickname, messageType) => {
