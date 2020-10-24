@@ -1,6 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
 const logger = require('../logger');
-const steamManager = require('../steam/steamManager');
 let steamChatBot = null
 
 let chatID = null
