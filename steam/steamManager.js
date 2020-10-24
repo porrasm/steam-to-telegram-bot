@@ -5,6 +5,8 @@ var SteamTotp = require('steam-totp');
 const timer = require('../tools/timer');
 const telegramBot = require('../telegram/telegramBot');
 
+const steamSecret = process.env.STEAM_SECRET
+
 global.SteamUser = User
 global.steamManager = this
 global.steamClient = null
@@ -13,6 +15,11 @@ const getClient = () => {
     return client
 }
 
+const autologin = () => {
+    const user = process.env.STEAM_USER
+    const pass = process.env.STEAM_PASSWORD
+    login(user, pass, getCode())
+}
 const login = (accountName, password, twoFactorCode) => {
 
     console.log("Call login: ", new Error().stack)
@@ -60,7 +67,7 @@ const logout = async () => {
 }
 
 const getCode = () => {
-    return SteamTotp.generateAuthCode(process.env.STEAM_SECRET);
+    return SteamTotp.generateAuthCode(steamSecret);
 }
 
 const getChatBot = () => {
@@ -84,6 +91,7 @@ const getPersona = (steamID) => {
 
 module.exports = {
     getClient,
+    autologin,
     login,
     logout,
     getChatBot,
