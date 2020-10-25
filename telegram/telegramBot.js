@@ -32,7 +32,7 @@ bot.onText(/^\/autologin (.+)/, (msg, match) => {
     } catch(e) {
         logger.log('Error on autologin set', e.message)
     }
-});
+})
 
 bot.onText(/^\/autoreply (.+)/, (msg, match) => {
 
@@ -51,7 +51,7 @@ bot.onText(/^\/autoreply (.+)/, (msg, match) => {
         jsonFiles.saveSettings()
         sendBotMessage("Set 'useAutoReply' to false")
     }
-});
+})
 
 const checkConfirmString = (s) => {
     s = s.toLowerCase()
@@ -69,7 +69,7 @@ const checkConfirmString = (s) => {
 
 //#endregion
 
-bot.onText(/^\/status/, (msg, match) => {
+bot.onText(/^\/status( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -77,18 +77,18 @@ bot.onText(/^\/status/, (msg, match) => {
 
     const statusString = `Bot status:\nRunning time: ${new Date().getHours() - startTime / 3600}`
     sendBotMessage(statusString)
-});
+})
 
-bot.onText(/^\/code/, (msg, match) => {
+bot.onText(/^\/code( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
     }
     
     sendMessage(steamManager.getCode())
-});
+})
 
-bot.onText(/^\/online/, (msg, match) => {
+bot.onText(/^\/online( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -97,9 +97,9 @@ bot.onText(/^\/online/, (msg, match) => {
     steamClient.setPersona(SteamUser.EPersonaState.Online)
     // bot.sendMessage(msg.chat.id, "Set you online on Steam")
     sendBotMessage("Steam status: Online")
-});
+})
 
-bot.onText(/^\/offline/, (msg, match) => {
+bot.onText(/^\/offline( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -108,10 +108,10 @@ bot.onText(/^\/offline/, (msg, match) => {
     steamClient.setPersona(SteamUser.EPersonaState.Offline)
     // bot.sendMessage(msg.chat.id, "Set you offline on Steam")
     sendBotMessage("Steam status: Offline")
-});
+})
 
 
-bot.onText(/^\/quit/, (msg, match) => {
+bot.onText(/^\/quit( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -128,17 +128,30 @@ bot.onText(/^\/quit/, (msg, match) => {
     // sendMessage("Stopping the bot. Goodbye!", false, r => {
         // process.exit(0)
     // })
-});
+})
 
 
-bot.onText(/^\/test/, (msg, match) => {
+bot.onText(/^\/test( |$)/, (msg, match) => {
     sendMessage('This is a test')
-});
+})
 
-bot.onText(/^\/test2/, (msg, match) => {
+bot.onText(/^\/test2( |$)/, (msg, match) => {
     url = msg.reply_to_message.entities[1].url
     sendMessage(url.substring(10, url.length - 1), false)
-});
+})
+
+const onCommand = (command, acceptParams, callback) => {
+    if (acceptParams) {
+        match = new RegExp("^\/" + command + "( |$)")
+    } else {
+        match = new RegExp("^\/" + command + "$")
+    }
+    bot.onText(match, callback)
+}
+
+onCommand('test3', (msg, match) => {
+    sendMessage('This is a test 3')
+})
 
 
 bot.on('message', (msg) => {
@@ -169,6 +182,7 @@ bot.on('message', (msg) => {
         logger.log('Error on message', error.message)
     }
 });
+
 
 const onReplyToMessage = (msg) => {
 
