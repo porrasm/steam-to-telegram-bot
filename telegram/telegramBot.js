@@ -10,7 +10,7 @@ const startTime = new Date().getUTCMilliseconds()
 let lastSteamID = null
 
 //#region  commands
-bot.onText(/^\/status/, (msg, match) => {
+bot.onText(/^\/status( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -20,7 +20,7 @@ bot.onText(/^\/status/, (msg, match) => {
     sendBotMessage(statusString)
 });
 
-bot.onText(/^\/code/, (msg, match) => {
+bot.onText(/^\/code( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -29,7 +29,7 @@ bot.onText(/^\/code/, (msg, match) => {
     sendMessage(steamManager.getCode())
 });
 
-bot.onText(/^\/online/, (msg, match) => {
+bot.onText(/^\/online( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -52,7 +52,7 @@ bot.onText(/^\/offline/, (msg, match) => {
 });
 
 
-bot.onText(/^\/quit/, (msg, match) => {
+bot.onText(/^\/quit( |$)/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -72,13 +72,13 @@ bot.onText(/^\/quit/, (msg, match) => {
 });
 
 
-bot.onText(/^\/test/, (msg, match) => {
+bot.onText(/^\/test( |$)/, (msg, match) => {
     sendMessage('This is a test')
 });
 
-bot.onText(/^\/test2/, (msg, match) => {
-    url = msg.reply_to_message.entities[1].url
-    sendMessage(url.substring(10, url.length - 1), false)
+bot.onText(/^\/test2( |$)/, (msg, match) => {
+    sendMessage('This is a test 2')
+    // steamManager.getPersona(msg.substring(7))
 });
 
 
