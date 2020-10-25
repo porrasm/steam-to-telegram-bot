@@ -10,7 +10,7 @@ const startTime = new Date().getUTCMilliseconds()
 let lastSteamID = null
 
 //#region  commands
-bot.onText(/\/status/, (msg, match) => {
+bot.onText(/^\/status/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -20,7 +20,7 @@ bot.onText(/\/status/, (msg, match) => {
     sendBotMessage(statusString)
 });
 
-bot.onText(/\/code/, (msg, match) => {
+bot.onText(/^\/code/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -29,7 +29,7 @@ bot.onText(/\/code/, (msg, match) => {
     sendMessage(steamManager.getCode())
 });
 
-bot.onText(/\/online/, (msg, match) => {
+bot.onText(/^\/online/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -40,7 +40,7 @@ bot.onText(/\/online/, (msg, match) => {
     sendBotMessage("Steam status: Online")
 });
 
-bot.onText(/\/offline/, (msg, match) => {
+bot.onText(/^\/offline/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -52,7 +52,7 @@ bot.onText(/\/offline/, (msg, match) => {
 });
 
 
-bot.onText(/\/quit/, (msg, match) => {
+bot.onText(/^\/quit/, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -72,12 +72,11 @@ bot.onText(/\/quit/, (msg, match) => {
 });
 
 
-bot.onText(/\/test/, (msg, match) => {
-    // sendMessage("[id](http://id.1234)")
-    sendMessage("[id](id.1234)")
+bot.onText(/^\/test/, (msg, match) => {
+    sendMessage('This is a test')
 });
 
-bot.onText(/\/test2/, (msg, match) => {
+bot.onText(/^\/test2/, (msg, match) => {
     url = msg.reply_to_message.entities[1].url
     sendMessage(url.substring(10, url.length - 1), false)
 });
