@@ -62,6 +62,20 @@ bot.onText(/^\/autoreply (.+)/, (msg, match) => {
     }
 })
 
+bot.onText(/^\/defaultSteamState (.+)/, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    const param = checkConfirmString(match[1])
+
+    settings.defaultSteamState = param
+    jsonFiles.saveSettings()
+
+    sendBotMessage("Set 'defaultSteamState' to " + param)
+})
+
 const checkConfirmString = (s) => {
     s = s.toLowerCase()
     if (s == 'yes' || s == 'true' || s == '1' || s == 'y') {
@@ -75,7 +89,15 @@ const checkConfirmString = (s) => {
     return -1
 }
 
+onCommand('help', false, (msg, match) => {
 
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    const helpString = `Available commands: \n\nto do`
+    sendBotMessage(helpString)
+})
 
 onCommand('status', false, (msg, match) => {
 
@@ -105,6 +127,28 @@ onCommand('online', false, (msg, match) => {
     steamClient.setPersona(SteamUser.EPersonaState.Online)
     // bot.sendMessage(msg.chat.id, "Set you online on Steam")
     sendBotMessage("Steam status: Online")
+})
+
+onCommand('away', false, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    steamClient.setPersona(SteamUser.EPersonaState.Away)
+    // bot.sendMessage(msg.chat.id, "Set you online on Steam")
+    sendBotMessage("Steam status: Away")
+})
+
+onCommand('invisible', false, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    steamClient.setPersona(SteamUser.EPersonaState.Invisible)
+    // bot.sendMessage(msg.chat.id, "Set you online on Steam")
+    sendBotMessage("Steam status: Invisible")
 })
 
 onCommand('offline', false, (msg, match) => {

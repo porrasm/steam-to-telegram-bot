@@ -46,8 +46,9 @@ const checkAutoLogin = () => {
 const defaultSettings = () => {
     return {
         chatID: null,
+        defaultSteamState: "Offline",
         useAutoLogin: true,
-        useAutoReply: true,
+        useAutoReply: true
     }
 }
 
