@@ -7,7 +7,7 @@ let steamChatBot = null
 const username = process.env.TELEGRAM_USER
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_API_KEY, {polling: true})
 
-const startTime = new Date().getUTCMilliseconds()
+const startTime = new Date()
 
 let lastSteamID = null
 
@@ -106,7 +106,7 @@ onCommand('status', false, (msg, match) => {
         return
     }
 
-    const statusString = `Bot status:\nRunning time: ${new Date().getHours() - startTime / 3600}`
+    const statusString = `Bot status:\nRunning time: ${(new Date() - startTime) / 3600} hours`
     sendBotMessage(statusString)
 })
 
@@ -171,16 +171,13 @@ onCommand('quit', false, (msg, match) => {
 
     logger.log('Stop bot')
     
-    sendBotMessage("This feature is broken :)")
     
-     bot.stopPolling()
+    bot.stopPolling()
 
-     sendMessage("Stopping the bot. Goodbye!", false, r => {
-        quitAction()
-     })
+    sendBotMessage("Stopping the bot. Goodbye!", false)
+    quitAction()
 })
 const quitAction = async () => {
-    return
     await timer(5000)
     process.exit(0)
 }
@@ -313,6 +310,12 @@ const encapsulateMessage2 = (message, senderID, nickname, messageType) => {
 //#endregion
 
 const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
+
+    const passedMillis = new Date() - startTime
+    if (passedMillis < 5000) {
+        logger.log('Not executing queued up command')
+        return true
+    }
 
     if (msg.chat.username != username && !allowPublicUser) {
         logger.log("Received message from incorrect user", msg.chat)
