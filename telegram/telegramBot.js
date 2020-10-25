@@ -340,6 +340,8 @@ const setSteamChatBot = (bot) => {
     steamChatBot = bot
 }
 
+sendBotMessage('Started Steam to Telegram Bot')
+
 module.exports = {
     sendMessage,
     sendSteamMessageToTelegram,
