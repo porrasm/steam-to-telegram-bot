@@ -11,6 +11,15 @@ const startTime = new Date().getUTCMilliseconds()
 let lastSteamID = null
 
 //#region  commands
+const onCommand = (command, acceptParams, callback) => {
+    if (acceptParams) {
+        match = new RegExp("^\/" + command + "( |$)", "i")
+    } else {
+        match = new RegExp("^\/" + command + "$", "i")
+    }
+    bot.onText(match, callback)
+}
+
 bot.onText(/^\/autologin (.+)/, (msg, match) => {
 
     try {
@@ -65,11 +74,10 @@ const checkConfirmString = (s) => {
 
     return -1
 }
-//#region settings
 
-//#endregion
 
-bot.onText(/^\/status( |$)/, (msg, match) => {
+
+onCommand('status', false, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -79,7 +87,7 @@ bot.onText(/^\/status( |$)/, (msg, match) => {
     sendBotMessage(statusString)
 })
 
-bot.onText(/^\/code( |$)/, (msg, match) => {
+onCommand('code', false, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -88,7 +96,7 @@ bot.onText(/^\/code( |$)/, (msg, match) => {
     sendMessage(steamManager.getCode())
 })
 
-bot.onText(/^\/online( |$)/, (msg, match) => {
+onCommand('online', false, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -99,7 +107,7 @@ bot.onText(/^\/online( |$)/, (msg, match) => {
     sendBotMessage("Steam status: Online")
 })
 
-bot.onText(/^\/offline( |$)/, (msg, match) => {
+onCommand('offline', false, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -110,8 +118,7 @@ bot.onText(/^\/offline( |$)/, (msg, match) => {
     sendBotMessage("Steam status: Offline")
 })
 
-
-bot.onText(/^\/quit( |$)/, (msg, match) => {
+onCommand('quit', false, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -130,28 +137,14 @@ bot.onText(/^\/quit( |$)/, (msg, match) => {
     // })
 })
 
-
-bot.onText(/^\/test( |$)/, (msg, match) => {
+onCommand('test', false, (msg, match) => {
     sendMessage('This is a test')
 })
 
-bot.onText(/^\/test2( |$)/, (msg, match) => {
-    url = msg.reply_to_message.entities[1].url
-    sendMessage(url.substring(10, url.length - 1), false)
+onCommand('test2', false, (msg, match) => {
+    sendMessage('This is test 2')
 })
 
-const onCommand = (command, acceptParams, callback) => {
-    if (acceptParams) {
-        match = new RegExp("^\/" + command + "( |$)")
-    } else {
-        match = new RegExp("^\/" + command + "$")
-    }
-    bot.onText(match, callback)
-}
-
-onCommand('test3', (msg, match) => {
-    sendMessage('This is a test 3')
-})
 
 
 bot.on('message', (msg) => {
