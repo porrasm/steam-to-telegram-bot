@@ -140,14 +140,18 @@ bot.onText(/^\/test2( |$)/, (msg, match) => {
     // steamManager.getPersona(msg.substring(7))
 })
 
+// onCommand("test3", false, (msg, match) => {
+    // sendMessage('This is a test 3')
+// })
 
-const onCommand = (command, acceptParams, fn) => {
+
+const onCommand = (command, acceptParams, callback) => {
     if (acceptParams) {
-        match = /^/
+        match = new RegExp("^\/" + command + "( |$)")
     } else {
-        
+        match = new RegExp("^\/" + command + "$")
     }
-    bot.onText(//)
+    bot.onText(match, callback)
 }
 
 bot.on('message', (msg) => {
@@ -267,7 +271,7 @@ const encapsulateMessage2 = (message, senderID, nickname, messageType) => {
 //#endregion
 
 const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
-
+    
     if (msg.chat.username != username && !allowPublicUser) {
         logger.log("Received message from incorrect user", msg.chat)
         sendBotMessage("Sorry. This is a private bot. In order to use it yourself you have to configure it manually. Check github_link for more info.")

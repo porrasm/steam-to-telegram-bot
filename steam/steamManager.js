@@ -1,5 +1,6 @@
 const User = require('steam-user')
 const chatBot = require('./steamChatBot')
+const telegramBot = null
 let client = new User()
 var SteamTotp = require('steam-totp');
 const timer = require('../tools/timer');
@@ -87,6 +88,10 @@ const getPersona = (steamID) => {
     })
 }
 //#endregion
+
+const setTelegramBot = (bot) => {
+    telegramBot = bot
+}
 
 module.exports = {
     getClient,

@@ -2,6 +2,8 @@ const logger = require('./logger')
 global.logger = require('./logger')
 require('dotenv').config()
 const server = require('./server')
+const steamManager = require('./steam/steamManager')
+const telegramBot = require('./telegram/telegramBot')
 const jsonFiles = require('./tools/jsonFiles')
 
 const main = async () => {
@@ -13,6 +15,12 @@ const main = async () => {
 
     global.settings = settings
     global.steamManager = require('./steam/steamManager')
+    global.telegramBot = require('./telegram/telegramBot')
+
+    let chatBot = steamManager.getChatBot()
+    telegramBot.setSteamChatBot(chatBot)
+    chatBot.setTelegramBot(telegramBot)
+    steamManager.setTelegramBot(telegramBot)
 
     if (process.argv.length >= 5) {
         steamManager.login(process.argv[2], process.argv[3], process.argv[4])
@@ -21,12 +29,6 @@ const main = async () => {
     } else {
         logger.log('Not enough arguments. Not logging in.')
     }
-
-    global.telegramBot = require('./telegram/telegramBot')
-
-    let chatBot = steamManager.getChatBot()
-    telegramBot.setSteamChatBot(chatBot)
-    chatBot.setTelegramBot(telegramBot)
 
     server.createServer()
 }
