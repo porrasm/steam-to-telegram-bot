@@ -1,6 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 const logger = require('../logger');
 const jsonFiles = require('../tools/jsonFiles')
+const timer = require('../tools/timer')
 let steamChatBot = null
 
 const username = process.env.TELEGRAM_USER
@@ -172,14 +173,17 @@ onCommand('quit', false, (msg, match) => {
     
     sendBotMessage("This feature is broken :)")
     
-    // bot.stopPolling()
-    // bot.sendMessage(msg.chat.id, 'Stopping the bot. Goodbye!').then(r => {
-        // process.exit(0)
-    // })
-    // sendMessage("Stopping the bot. Goodbye!", false, r => {
-        // process.exit(0)
-    // })
+     bot.stopPolling()
+
+     sendMessage("Stopping the bot. Goodbye!", false, r => {
+        quitAction()
+     })
 })
+const quitAction = async () => {
+    return
+    await timer(5000)
+    process.exit(0)
+}
 
 onCommand('test', false, (msg, match) => {
     sendMessage('This is a test')
