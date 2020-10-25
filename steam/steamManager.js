@@ -3,7 +3,6 @@ const chatBot = require('./steamChatBot')
 let client = new User()
 var SteamTotp = require('steam-totp');
 const timer = require('../tools/timer');
-const telegramBot = require('../telegram/telegramBot');
 
 const steamSecret = process.env.STEAM_SECRET
 
@@ -41,7 +40,7 @@ const login = (accountName, password, twoFactorCode) => {
         logger.log("Logged into Steam as " + client.steamID.getSteam3RenderedID());
         // client.setPersona(SteamUser.EPersonaState.Online);
         chatBot.startChatBot()
-        telegramBot.sendMessage("Logged in on Steam as user: ", accountName)
+        telegramBot.sendBotMessage("Logged in on Steam as user: " + accountName)
     });
     
     client.on('error', function(e) {
@@ -52,7 +51,7 @@ const login = (accountName, password, twoFactorCode) => {
             twoFactorCode,
             e
         })
-        telegramBot.sendMessage("Error logging in on Steam as user: ", accountName)
+        telegramBot.sendBotMessage("Error logging in on Steam as user: " + accountName)
     });
 
     steamClient = client

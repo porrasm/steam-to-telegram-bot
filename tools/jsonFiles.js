@@ -6,13 +6,12 @@ const dataFolder = 'localData'
 
 let saving = false
 
-const saveJson = async (filename, json, beautify) => {
+const saveJson = (filename, json, beautify) => {
 
     saving = true
 
     if (!fs.existsSync(dataFolder)) {
-
-        await fs.mkdir(dataFolder)
+        fs.mkdirSync(dataFolder)
     }
 
     const jsonString = beautify ? JSON.stringify(json, null, "\t") : JSON.stringify(json)
@@ -37,6 +36,7 @@ const loadJson = async (filename) => {
 }
 
 const saveSettings = async () => {
+    logger.log('Saving settings file...', settings)
     return saveJson('settings', global.settings, true)
 }
 const loadSettings = async () => {

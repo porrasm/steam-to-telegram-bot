@@ -1,7 +1,8 @@
 const TelegramBot = require('node-telegram-bot-api');
+const logger = require('../logger');
+const jsonFiles = require('../tools/jsonFiles')
 let steamChatBot = null
 
-let chatID = null
 const username = process.env.TELEGRAM_USER
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_API_KEY, {polling: true})
 
@@ -10,6 +11,64 @@ const startTime = new Date().getUTCMilliseconds()
 let lastSteamID = null
 
 //#region  commands
+bot.onText(/^\/autologin (.+)/, (msg, match) => {
+
+    try {
+        if (invalidState(msg, true)) {
+            return
+        }
+    
+        const param = checkConfirmString(match[1])
+    
+        if (param == 1) {
+            settings.useAutoLogin = true
+            jsonFiles.saveSettings()
+            sendBotMessage("Set 'useAutoLogin' to true")
+        } else if (param == 0) {
+            settings.useAutoLogin = false
+            jsonFiles.saveSettings()
+            sendBotMessage("Set 'useAutoLogin' to false")
+        }
+    } catch(e) {
+        logger.log('Error on autologin set', e.message)
+    }
+});
+
+bot.onText(/^\/autoreply (.+)/, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    const param = checkConfirmString(match[1])
+
+    if (param == 1) {
+        settings.useAutoReply = true
+        jsonFiles.saveSettings()
+        sendBotMessage("Set 'useAutoReply' to true")
+    } else if (param == 0) {
+        settings.useAutoReply = false
+        jsonFiles.saveSettings()
+        sendBotMessage("Set 'useAutoReply' to false")
+    }
+});
+
+const checkConfirmString = (s) => {
+    s = s.toLowerCase()
+    if (s == 'yes' || s == 'true' || s == '1' || s == 'y') {
+        return 1
+    }
+
+    if (s == 'no' || s == 'false' || s == '0' || s == 'n') {
+        return 0
+    }
+
+    return -1
+}
+//#region settings
+
+//#endregion
+
 bot.onText(/^\/status/, (msg, match) => {
 
     if (invalidState(msg, true)) {
@@ -101,7 +160,7 @@ bot.on('message', (msg) => {
             return
         }
         
-        if (lastSteamID) {
+        if (lastSteamID && settings.useAutoReply) {
             steamChatBot.sendMessage(lastSteamID, msg.text)
         } else {
             sendBotMessage("No repicient for message")
@@ -140,29 +199,29 @@ const getSteamIDFromReplyOld = (text) => {
     return split[0]
 }
 
-bot.onReplyToMessage(chatID, null, (msg) => {
+bot.onReplyToMessage(settings.chatID, null, (msg) => {
     logger.log('Reply to message', msg)
 })
 //#endregion
 
 //#region steam integration
 const sendMessage = (message, markdown = true, fThen = null) => {
-    if (!chatID) {
+    if (!settings.chatID) {
         logger.log("Trying to send Telegram message with null chatID")
         return
     }
     
     if (markdown) {
         if (fThen) {
-            bot.sendMessage(chatID, message, {parse_mode: "Markdown"}).then(fThen)
+            bot.sendMessage(settings.chatID, message, {parse_mode: "Markdown"}).then(fThen)
         } else {
-            bot.sendMessage(chatID, message, {parse_mode: "Markdown"})
+            bot.sendMessage(settings.chatID, message, {parse_mode: "Markdown"})
         }
     } else {
         if (fThen) {
-            bot.sendMessage(chatID, message).then(fThen)
+            bot.sendMessage(settings.chatID, message).then(fThen)
         } else {
-            bot.sendMessage(chatID, message)
+            bot.sendMessage(settings.chatID, message)
         }
     }
     
@@ -174,14 +233,14 @@ const sendBotMessage = (message, fThen = null) => {
 }
 
 const sendSteamMessageToTelegram = (message, steamID, nickname) => {
-    if (!chatID) {
+    if (!settings.chatID) {
         logger.log("Received message but chatID is null", message)
         return
     }
 
     const toSend = steamID == null ? message : encapsulateMessage2(message, steamID, nickname, "Steam")
 
-    bot.sendMessage(chatID, toSend, {parse_mode: "Markdown"}).then(sent => {
+    bot.sendMessage(settings.chatID, toSend, {parse_mode: "Markdown"}).then(sent => {
         if (steamID) {
             logger.log('Forwarded Steam message to Telegram', sent.text)
         }
@@ -207,9 +266,10 @@ const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
     } else {
         // proper init command???
         
-        if (chatID != msg.chat.id) {
-            chatID = msg.chat.id
-            sendBotMessage("Welcome! Initialized bot with current chat id: " + chatID)
+        if (settings.chatID != msg.chat.id) {
+            settings.chatID = msg.chat.id
+            sendBotMessage("Welcome! Initialized bot with current chat id: " + settings.chatID)
+            jsonFiles.saveSettings()
         }
     }
 
@@ -232,5 +292,6 @@ const setSteamChatBot = (bot) => {
 module.exports = {
     sendMessage,
     sendSteamMessageToTelegram,
-    setSteamChatBot
+    setSteamChatBot,
+    sendBotMessage
 }

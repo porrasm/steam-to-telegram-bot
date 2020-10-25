@@ -2,14 +2,13 @@ const logger = require('./logger')
 global.logger = require('./logger')
 require('dotenv').config()
 const server = require('./server')
-const steamManager = require('./steam/steamManager')
 const jsonFiles = require('./tools/jsonFiles')
 
 const main = async () => {
 
-    let settings = await jsonFiles.loadJson('settings')
+    let settings = await jsonFiles.loadSettings()
     if (!settings) {
-        settings = {}
+        settings = defaultSettings()
     }
 
     global.settings = settings
@@ -23,7 +22,7 @@ const main = async () => {
         logger.log('Not enough arguments. Not logging in.')
     }
 
-    const telegramBot = require('./telegram/telegramBot')
+    global.telegramBot = require('./telegram/telegramBot')
 
     let chatBot = steamManager.getChatBot()
     telegramBot.setSteamChatBot(chatBot)
@@ -37,7 +36,15 @@ const checkAutoLogin = () => {
     const pass = process.env.STEAM_PASSWORD
     const secret = process.env.STEAM_SECRET
 
-    return user != null && pass != null && secret != null
+    return user != null && pass != null && secret != null && settings.useAutoLogin
+}
+
+const defaultSettings = () => {
+    return {
+        chatID: null,
+        useAutoLogin: true,
+        useAutoReply: true,
+    }
 }
 
 logger.log('Starting application...')

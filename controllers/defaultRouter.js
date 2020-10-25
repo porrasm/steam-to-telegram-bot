@@ -1,7 +1,5 @@
 const router = require('express').Router()
 const path = require('path')
-const steamManager = require('../steam/steamManager')
-const telegramBot = require('../telegram/telegramBot')
 const timer = require('../tools/timer')
 
 router.get('/', async (request, response) => {
@@ -16,15 +14,16 @@ router.post('/login', async (request, response) => {
     const code = request.body.code
 
     steamManager.login(user, password, code)
-    return response.status(200).send()
+    response.redirect("/logs")
 })
 
 router.post('/logout', async (request, response) => {
     steamManager.logout()
-    return response.status(200).send()
+    response.redirect("/logs")
 })
 
 router.post('/exit', async (request, response) => {
+    response.redirect("/logs")
     steamManager.logout()
     telegramBot.sendMessage("Exiting application. Goodbye!")
     await timer(5000)
