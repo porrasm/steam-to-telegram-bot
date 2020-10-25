@@ -1,0 +1,1 @@
+https://github.com/DoctorMcKay/node-steam-user
