@@ -18,7 +18,7 @@ bot.onText(/^\/status( |$)/, (msg, match) => {
 
     const statusString = `Bot status:\nRunning time: ${new Date().getHours() - startTime / 3600}`
     sendBotMessage(statusString)
-});
+})
 
 bot.onText(/^\/code( |$)/, (msg, match) => {
 
@@ -27,7 +27,7 @@ bot.onText(/^\/code( |$)/, (msg, match) => {
     }
     
     sendMessage(steamManager.getCode())
-});
+})
 
 bot.onText(/^\/online( |$)/, (msg, match) => {
 
@@ -38,7 +38,7 @@ bot.onText(/^\/online( |$)/, (msg, match) => {
     steamClient.setPersona(SteamUser.EPersonaState.Online)
     // bot.sendMessage(msg.chat.id, "Set you online on Steam")
     sendBotMessage("Steam status: Online")
-});
+})
 
 bot.onText(/^\/offline/, (msg, match) => {
 
@@ -49,7 +49,7 @@ bot.onText(/^\/offline/, (msg, match) => {
     steamClient.setPersona(SteamUser.EPersonaState.Offline)
     // bot.sendMessage(msg.chat.id, "Set you offline on Steam")
     sendBotMessage("Steam status: Offline")
-});
+})
 
 
 bot.onText(/^\/quit( |$)/, (msg, match) => {
@@ -69,18 +69,27 @@ bot.onText(/^\/quit( |$)/, (msg, match) => {
     // sendMessage("Stopping the bot. Goodbye!", false, r => {
         // process.exit(0)
     // })
-});
+})
 
 
 bot.onText(/^\/test( |$)/, (msg, match) => {
     sendMessage('This is a test')
-});
+})
 
 bot.onText(/^\/test2( |$)/, (msg, match) => {
     sendMessage('This is a test 2')
     // steamManager.getPersona(msg.substring(7))
-});
+})
 
+
+const onCommand = (command, acceptParams, fn) => {
+    if (acceptParams) {
+        match = /^/
+    } else {
+        
+    }
+    bot.onText(//)
+}
 
 bot.on('message', (msg) => {
 
