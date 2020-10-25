@@ -1,6 +1,4 @@
-const { load } = require('dotenv/types')
 const fs = require('fs')
-const fsp = require('fs').promises
 const { promisify } = require('util')
 const readFile = promisify(fs.readFile)
 
@@ -27,13 +25,13 @@ const saveJson = async (filename, json, beautify) => {
 }
 const loadJson = async (filename) => {
 
-    const filename = `${dataFolder}/${filename}.json`
+    const path = `${dataFolder}/${filename}.json`
 
-    if (!fs.existsSync(filename)) {
+    if (!fs.existsSync(path)) {
         return null
     }
 
-    const jsonString = await readFile(filename)
+    const jsonString = await readFile(path)
 
     return JSON.parse(jsonString)
 }

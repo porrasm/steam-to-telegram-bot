@@ -3,7 +3,6 @@ global.logger = require('./logger')
 require('dotenv').config()
 const server = require('./server')
 const steamManager = require('./steam/steamManager')
-const { saveJson } = require('./tools/jsonFiles')
 const jsonFiles = require('./tools/jsonFiles')
 
 const main = async () => {
