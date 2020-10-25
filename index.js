@@ -28,7 +28,11 @@ const main = async () => {
     telegramBot.setSteamChatBot(chatBot)
     chatBot.setTelegramBot(telegramBot)
 
-    server.createServer()
+    if (process.env.SERVER_PORT != null) {
+        server.createServer()
+    } else {
+        logger.log('Server port not defined in the .env file. The app won\'t create a web interface.')
+    }
 }
 
 const checkAutoLogin = () => {
