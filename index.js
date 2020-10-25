@@ -1,3 +1,13 @@
+
+
+const defaultSettings = () => {
+    return {
+        chatID: null,
+        useAutoLogin: true,
+        useAutoReply: true,
+    }
+}
+
 const logger = require('./logger')
 global.logger = require('./logger')
 require('dotenv').config()
@@ -39,14 +49,6 @@ const checkAutoLogin = () => {
     const secret = process.env.STEAM_SECRET
 
     return user != null && pass != null && secret != null && settings.useAutoLogin
-}
-
-const defaultSettings = () => {
-    return {
-        chatID: null,
-        useAutoLogin: true,
-        useAutoReply: true,
-    }
 }
 
 logger.log('Starting application...')
