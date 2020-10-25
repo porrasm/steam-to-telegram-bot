@@ -3,9 +3,17 @@ global.logger = require('./logger')
 require('dotenv').config()
 const server = require('./server')
 const steamManager = require('./steam/steamManager')
+const { saveJson } = require('./tools/jsonFiles')
+const jsonFiles = require('./tools/jsonFiles')
 
-const main = () => {
+const main = async () => {
 
+    let settings = await jsonFiles.loadJson('settings')
+    if (!settings) {
+        settings = {}
+    }
+
+    global.settings = settings
     global.steamManager = require('./steam/steamManager')
 
     if (process.argv.length >= 5) {
@@ -13,7 +21,7 @@ const main = () => {
     } else if (checkAutoLogin()) {
         steamManager.autologin()
     } else {
-        logger.log("Not enough arguments. Not logging in.")
+        logger.log('Not enough arguments. Not logging in.')
     }
 
     const telegramBot = require('./telegram/telegramBot')
@@ -33,6 +41,6 @@ const checkAutoLogin = () => {
     return user != null && pass != null && secret != null
 }
 
-logger.log("Starting application...")
+logger.log('Starting application...')
 
 main()

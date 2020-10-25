@@ -1,4 +1,3 @@
-const logger = require('../logger');
 let telegramBot = null
 
 const startChatBot = () => {
