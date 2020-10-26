@@ -46,9 +46,10 @@ const checkAutoLogin = () => {
 const defaultSettings = () => {
     return {
         chatID: null,
-        defaultSteamState: "Offline",
+        defaultSteamState: 'Offline',
         useAutoLogin: true,
-        useAutoReply: true
+        useAutoReply: true,
+        relayStringMatch: '//'
     }
 }
 

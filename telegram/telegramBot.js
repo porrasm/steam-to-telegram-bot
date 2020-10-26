@@ -2,6 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const logger = require('../logger');
 const jsonFiles = require('../tools/jsonFiles')
 const timer = require('../tools/timer')
+const commandForwarder = require('../commandForwarder')
 let steamChatBot = null
 
 const username = process.env.TELEGRAM_USER
@@ -12,6 +13,7 @@ const startTime = new Date()
 let lastSteamID = null
 
 //#region  commands
+//#region match
 const onCommand = (command, acceptParams, callback) => {
     if (acceptParams) {
         match = new RegExp("^\/" + command + "( |$)", "i")
@@ -69,12 +71,30 @@ bot.onText(/^\/defaultSteamState (.+)/, (msg, match) => {
         return
     }
 
-    const param = checkConfirmString(match[1])
+    const param = match[1]
 
     settings.defaultSteamState = param
     jsonFiles.saveSettings()
 
     sendBotMessage("Set 'defaultSteamState' to " + param)
+})
+
+bot.onText(/^\/relayStringMatch (.+)/, (msg, match) => {
+
+    if (invalidState(msg, true)) {
+        return
+    }
+
+    let param = match[1]
+
+    if (param == null || param.length == 0) {
+        param = null
+    }
+
+    settings.relayStringMatch = param
+    jsonFiles.saveSettings()
+
+    sendBotMessage("Set 'relayStringMatch' to " + param)
 })
 
 const checkConfirmString = (s) => {
@@ -189,22 +209,25 @@ onCommand('test', false, (msg, match) => {
 onCommand('test2', false, (msg, match) => {
     sendMessage('This is test 2')
 })
+//#endregion
 
-
-
+//#region general
 bot.on('message', (msg) => {
-
     try {
         if (invalidState(msg)) {
             logger.log('Invalid state on message receive')
             return
         }
         
-        if (msg.text.charAt(0) == "/") {
+        if (settings.relayStringMatch == null || msg.text.startsWith(settings.relayStringMatch)) {
+            lastSteamID = null
+            commandForwarder.forwardCommand(msg.text, settings.relayStringMatch)
+            return
+        } else if (msg.text.startsWith('/')) {
             lastSteamID = null
             return
         }
-    
+
         if (msg.reply_to_message) {
             onReplyToMessage(msg)
             lastSteamID = getSteamIDFromReply(msg.reply_to_message)
@@ -254,6 +277,7 @@ const getSteamIDFromReplyOld = (text) => {
 bot.onReplyToMessage(settings.chatID, null, (msg) => {
     logger.log('Reply to message', msg)
 })
+//#endregion
 //#endregion
 
 //#region steam integration
@@ -319,7 +343,8 @@ const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
 
     if (msg.chat.username != username && !allowPublicUser) {
         logger.log("Received message from incorrect user", msg.chat)
-        sendBotMessage("Sorry. This is a private bot. In order to use it yourself you have to configure it manually. Check github_link for more info.")
+        bot.sendMessage(msg.chat.id, "Sorry. This is a private bot. In order to use it yourself you have to configure it manually. Check github_link for more info.")
+        sendBotMessage('Received message from incorrect user: ' + JSON.stringify(msg.chat))
         return true
     } else {
         // proper init command???
