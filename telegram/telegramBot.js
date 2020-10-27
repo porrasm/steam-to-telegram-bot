@@ -16,7 +16,7 @@ let lastSteamID = null
 //#region match
 const onCommand = (command, acceptParams, callback) => {
     if (acceptParams) {
-        match = new RegExp("^\/" + command + "( |$)", "i")
+        match = new RegExp("^\/" + command + " (.+)$", "i")
     } else {
         match = new RegExp("^\/" + command + "$", "i")
     }
@@ -204,6 +204,10 @@ const quitAction = async () => {
 
 onCommand('test', false, (msg, match) => {
     sendMessage('This is a test')
+})
+
+onCommand('test', true, (msg, match) => {
+    sendMessage(JSON.stringify(match))
 })
 
 onCommand('test2', false, (msg, match) => {
