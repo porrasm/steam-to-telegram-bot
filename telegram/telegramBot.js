@@ -340,7 +340,7 @@ const encapsulateMessage2 = (message, senderID, nickname, messageType) => {
 const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
 
     const passedMillis = new Date() - startTime
-    if (passedMillis < 5000) {
+    if (passedMillis < 10000) {
         logger.log('Not executing queued up command')
         return true
     }
