@@ -23,7 +23,7 @@ const onCommand = (command, acceptParams, callback) => {
     bot.onText(match, callback)
 }
 
-bot.onText(/^\/autologin (.+)/, (msg, match) => {
+onCommand("autologin", true, (msg, match) => {
 
     try {
         if (invalidState(msg, true)) {
@@ -46,7 +46,7 @@ bot.onText(/^\/autologin (.+)/, (msg, match) => {
     }
 })
 
-bot.onText(/^\/autoreply (.+)/, (msg, match) => {
+onCommand("autoreply", true, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -65,7 +65,7 @@ bot.onText(/^\/autoreply (.+)/, (msg, match) => {
     }
 })
 
-bot.onText(/^\/defaultSteamState (.+)/, (msg, match) => {
+onCommand("defaultSteamState", true, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -79,7 +79,7 @@ bot.onText(/^\/defaultSteamState (.+)/, (msg, match) => {
     sendBotMessage("Set 'defaultSteamState' to " + param)
 })
 
-bot.onText(/^\/relayStringMatch (.+)/, (msg, match) => {
+onCommand("relayStringMatch", true, (msg, match) => {
 
     if (invalidState(msg, true)) {
         return
@@ -125,14 +125,20 @@ onCommand('status', false, (msg, match) => {
     if (invalidState(msg, true)) {
         return
     }
-
-    const statusString = `Bot status:\nRunning time: ${(new Date() - startTime) / 3600} hours`
-    sendBotMessage(statusString)
+    
+    passed = (new Date().getTime() - startTime.getTime()) / 1000
+    hours = Math.floor(passed / 3600)
+    minutes = Math.floor(passed % 3600 / 60)
+    seconds = Math.floor(passed % 60)
+    
+    status = 'Bot status:\nRunning time: ' + hours + ' hours ' + minutes + ' minutes ' + seconds + ' seconds'
+    // const statusString = `Bot status:\nRunning time: ${Math.floor((new Date().getTime() - startTime.getTime()) / 3600000)} hours`
+    sendBotMessage(status)
 })
 
 onCommand('code', false, (msg, match) => {
 
-    if (invalidState(msg, true)) {
+    if (invalidState(msg)) {
         return
     }
     
@@ -141,45 +147,41 @@ onCommand('code', false, (msg, match) => {
 
 onCommand('online', false, (msg, match) => {
 
-    if (invalidState(msg, true)) {
+    if (invalidState(msg)) {
         return
     }
 
     steamClient.setPersona(SteamUser.EPersonaState.Online)
-    // bot.sendMessage(msg.chat.id, "Set you online on Steam")
     sendBotMessage("Steam status: Online")
 })
 
 onCommand('away', false, (msg, match) => {
 
-    if (invalidState(msg, true)) {
+    if (invalidState(msg)) {
         return
     }
 
     steamClient.setPersona(SteamUser.EPersonaState.Away)
-    // bot.sendMessage(msg.chat.id, "Set you online on Steam")
     sendBotMessage("Steam status: Away")
 })
 
 onCommand('invisible', false, (msg, match) => {
 
-    if (invalidState(msg, true)) {
+    if (invalidState(msg)) {
         return
     }
 
     steamClient.setPersona(SteamUser.EPersonaState.Invisible)
-    // bot.sendMessage(msg.chat.id, "Set you online on Steam")
     sendBotMessage("Steam status: Invisible")
 })
 
 onCommand('offline', false, (msg, match) => {
 
-    if (invalidState(msg, true)) {
+    if (invalidState(msg)) {
         return
     }
 
     steamClient.setPersona(SteamUser.EPersonaState.Offline)
-    // bot.sendMessage(msg.chat.id, "Set you offline on Steam")
     sendBotMessage("Steam status: Offline")
 })
 
@@ -203,21 +205,81 @@ const quitAction = async () => {
 }
 
 onCommand('test', false, (msg, match) => {
+    if (invalidState(msg, true)) {
+        return
+    }
+    
     sendMessage('This is a test')
 })
 
 onCommand('test', true, (msg, match) => {
+    if (invalidState(msg, true)) {
+        return
+    }
+    
     sendMessage(JSON.stringify(match))
 })
-
-onCommand('test2', false, (msg, match) => {
-    sendMessage('This is test 2')
-})
 //#endregion
+
+//#region experimental
+let commandList = []
+
+const commandBase = (needsSteam, isPublic, callback, msg) => {
+    if (invalidState(msg, !needsSteam, isPublic)) {
+        return
+    }
+    
+    params = msg.text.split(" ")
+    params.shift()
+    
+    callback(msg, params)
+}
+
+const onCommandEx = (command, bParams, needsSteam, isPublic, callback) => {
+    if (command.includes(' ')) {
+        logger.log('Command \'' + command + '\' has illegal characters')
+    }
+    
+    if (bParams) {
+        match = new RegExp('^/' + command + ' (.+)$', 'i')
+    } else {
+        match = new RegExp('^/' + command + '$', 'i')
+    }
+    
+    commandList.push({command: command, regex: match, callback: commandBase.bind(null, needsSteam, isPublic, callback)})
+}
+
+const getCommand = (command) => {
+    res = commandList.find((value, index, array) => {
+        return value.regex.exec(command)
+    })
+    
+    if (res) {
+        return res
+    } else {
+        return null
+    }
+}
+//#endregion
+
+onCommandEx('cmdtest', false, false, false, (msg, params) => {
+    sendMessage('Success!')
+})
+
+onCommandEx('cmdtest2', true, false, false, (msg, params) => {
+    sendMessage(JSON.stringify(params))
+})
 
 //#region general
 bot.on('message', (msg) => {
     try {
+        cmd = getCommand(msg.text)
+        
+        if (cmd) {
+            cmd.callback(msg)
+            return
+        }
+        
         if (invalidState(msg)) {
             logger.log('Invalid state on message receive')
             return
@@ -339,8 +401,7 @@ const encapsulateMessage2 = (message, senderID, nickname, messageType) => {
 
 const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
 
-    const passedMillis = new Date() - startTime
-    if (passedMillis < 10000) {
+    if (msg.date * 1000 < startTime.getTime()) {
         logger.log('Not executing queued up command')
         return true
     }
