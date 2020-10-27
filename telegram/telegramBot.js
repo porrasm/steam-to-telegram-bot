@@ -12,216 +12,8 @@ const startTime = new Date()
 
 let lastSteamID = null
 
-//#region  commands
-//#region match
-const onCommand = (command, acceptParams, callback) => {
-    if (acceptParams) {
-        match = new RegExp("^\/" + command + " (.+)$", "i")
-    } else {
-        match = new RegExp("^\/" + command + "$", "i")
-    }
-    bot.onText(match, callback)
-}
-
-onCommand("autologin", true, (msg, match) => {
-
-    try {
-        if (invalidState(msg, true)) {
-            return
-        }
-    
-        const param = checkConfirmString(match[1])
-    
-        if (param == 1) {
-            settings.useAutoLogin = true
-            jsonFiles.saveSettings()
-            sendBotMessage("Set 'useAutoLogin' to true")
-        } else if (param == 0) {
-            settings.useAutoLogin = false
-            jsonFiles.saveSettings()
-            sendBotMessage("Set 'useAutoLogin' to false")
-        }
-    } catch(e) {
-        logger.log('Error on autologin set', e.message)
-    }
-})
-
-onCommand("autoreply", true, (msg, match) => {
-
-    if (invalidState(msg, true)) {
-        return
-    }
-
-    const param = checkConfirmString(match[1])
-
-    if (param == 1) {
-        settings.useAutoReply = true
-        jsonFiles.saveSettings()
-        sendBotMessage("Set 'useAutoReply' to true")
-    } else if (param == 0) {
-        settings.useAutoReply = false
-        jsonFiles.saveSettings()
-        sendBotMessage("Set 'useAutoReply' to false")
-    }
-})
-
-onCommand("defaultSteamState", true, (msg, match) => {
-
-    if (invalidState(msg, true)) {
-        return
-    }
-
-    const param = match[1]
-
-    settings.defaultSteamState = param
-    jsonFiles.saveSettings()
-
-    sendBotMessage("Set 'defaultSteamState' to " + param)
-})
-
-onCommand("relayStringMatch", true, (msg, match) => {
-
-    if (invalidState(msg, true)) {
-        return
-    }
-
-    let param = match[1]
-
-    if (param == null || param.length == 0) {
-        param = null
-    }
-
-    settings.relayStringMatch = param
-    jsonFiles.saveSettings()
-
-    sendBotMessage("Set 'relayStringMatch' to " + param)
-})
-
-const checkConfirmString = (s) => {
-    s = s.toLowerCase()
-    if (s == 'yes' || s == 'true' || s == '1' || s == 'y') {
-        return 1
-    }
-
-    if (s == 'no' || s == 'false' || s == '0' || s == 'n') {
-        return 0
-    }
-
-    return -1
-}
-
-onCommand('help', false, (msg, match) => {
-
-    if (invalidState(msg, true)) {
-        return
-    }
-
-    const helpString = `Available commands: \n\nto do`
-    sendBotMessage(helpString)
-})
-
-onCommand('status', false, (msg, match) => {
-
-    if (invalidState(msg, true)) {
-        return
-    }
-    
-    passed = (new Date().getTime() - startTime.getTime()) / 1000
-    hours = Math.floor(passed / 3600)
-    minutes = Math.floor(passed % 3600 / 60)
-    seconds = Math.floor(passed % 60)
-    
-    status = 'Bot status:\nRunning time: ' + hours + ' hours ' + minutes + ' minutes ' + seconds + ' seconds'
-    // const statusString = `Bot status:\nRunning time: ${Math.floor((new Date().getTime() - startTime.getTime()) / 3600000)} hours`
-    sendBotMessage(status)
-})
-
-onCommand('code', false, (msg, match) => {
-
-    if (invalidState(msg)) {
-        return
-    }
-    
-    sendMessage(steamManager.getCode())
-})
-
-onCommand('online', false, (msg, match) => {
-
-    if (invalidState(msg)) {
-        return
-    }
-
-    steamClient.setPersona(SteamUser.EPersonaState.Online)
-    sendBotMessage("Steam status: Online")
-})
-
-onCommand('away', false, (msg, match) => {
-
-    if (invalidState(msg)) {
-        return
-    }
-
-    steamClient.setPersona(SteamUser.EPersonaState.Away)
-    sendBotMessage("Steam status: Away")
-})
-
-onCommand('invisible', false, (msg, match) => {
-
-    if (invalidState(msg)) {
-        return
-    }
-
-    steamClient.setPersona(SteamUser.EPersonaState.Invisible)
-    sendBotMessage("Steam status: Invisible")
-})
-
-onCommand('offline', false, (msg, match) => {
-
-    if (invalidState(msg)) {
-        return
-    }
-
-    steamClient.setPersona(SteamUser.EPersonaState.Offline)
-    sendBotMessage("Steam status: Offline")
-})
-
-onCommand('quit', false, (msg, match) => {
-
-    if (invalidState(msg, true)) {
-        return
-    }
-
-    logger.log('Stop bot')
-    
-    
-    bot.stopPolling()
-
-    sendBotMessage("Stopping the bot. Goodbye!", false)
-    quitAction()
-})
-const quitAction = async () => {
-    await timer(5000)
-    process.exit(0)
-}
-
-onCommand('test', false, (msg, match) => {
-    if (invalidState(msg, true)) {
-        return
-    }
-    
-    sendMessage('This is a test')
-})
-
-onCommand('test', true, (msg, match) => {
-    if (invalidState(msg, true)) {
-        return
-    }
-    
-    sendMessage(JSON.stringify(match))
-})
-//#endregion
-
-//#region experimental
+//#region commands
+//#region onCommandSetup
 let commandList = []
 
 const commandBase = (needsSteam, isPublic, callback, msg) => {
@@ -235,7 +27,19 @@ const commandBase = (needsSteam, isPublic, callback, msg) => {
     callback(msg, params)
 }
 
-const onCommandEx = (command, bParams, needsSteam, isPublic, callback) => {
+const onSteamCommand = (command, bParams, callback) => {
+    onCommandBase(command, bParams, true, false, callback)
+}
+
+const onPublicCommand = (command, bParams, callback) => {
+    onCommandBase(command, bParams, false, true, callback)
+}
+
+const onCommand = (command, bParams, callback) => {
+    onCommandBase(command, bParams, false, false, callback)
+}
+
+const onCommandBase = (command, bParams, needsSteam, isPublic, callback) => {
     if (command.includes(' ')) {
         logger.log('Command \'' + command + '\' has illegal characters')
     }
@@ -262,13 +66,150 @@ const getCommand = (command) => {
 }
 //#endregion
 
-onCommandEx('cmdtest', false, false, false, (msg, params) => {
-    sendMessage('Success!')
+//#region match
+onCommand('autologin', true, (msg, params) => {
+    
+    try {
+        const param = checkConfirmString(params[0])
+    
+        if (param == 1) {
+            settings.useAutoLogin = true
+            jsonFiles.saveSettings()
+            sendBotMessage("Set 'useAutoLogin' to true")
+        } else if (param == 0) {
+            settings.useAutoLogin = false
+            jsonFiles.saveSettings()
+            sendBotMessage("Set 'useAutoLogin' to false")
+        }
+    } catch(e) {
+        logger.log('Error on autologin set', e.message)
+    }
 })
 
-onCommandEx('cmdtest2', true, false, false, (msg, params) => {
+onCommand("autoreply", true, (msg, params) => {
+    
+    const param = checkConfirmString(params[0])
+
+    if (param == 1) {
+        settings.useAutoReply = true
+        jsonFiles.saveSettings()
+        sendBotMessage("Set 'useAutoReply' to true")
+    } else if (param == 0) {
+        settings.useAutoReply = false
+        jsonFiles.saveSettings()
+        sendBotMessage("Set 'useAutoReply' to false")
+    }
+})
+
+onCommand("defaultSteamState", true, (msg, params) => {
+    
+    const param = params[0]
+
+    settings.defaultSteamState = param
+    jsonFiles.saveSettings()
+
+    sendBotMessage("Set 'defaultSteamState' to " + param)
+})
+
+onCommand("relayStringMatch", true, (msg, params) => {
+    
+    let param = params[0]
+
+    if (param == null || param.length == 0) {
+        param = null
+    }
+
+    settings.relayStringMatch = param
+    jsonFiles.saveSettings()
+
+    sendBotMessage("Set 'relayStringMatch' to " + param)
+})
+
+const checkConfirmString = (s) => {
+    s = s.toLowerCase()
+    if (s == 'yes' || s == 'true' || s == '1' || s == 'y') {
+        return 1
+    }
+
+    if (s == 'no' || s == 'false' || s == '0' || s == 'n') {
+        return 0
+    }
+
+    return -1
+}
+
+onCommand('help', false, (msg, params) => {
+    
+    const helpString = `Available commands: \n\nto do`
+    sendBotMessage(helpString)
+})
+
+onCommand('status', false, (msg, params) => {
+    
+    passed = (new Date().getTime() - startTime.getTime()) / 1000
+    hours = Math.floor(passed / 3600)
+    minutes = Math.floor(passed % 3600 / 60)
+    seconds = Math.floor(passed % 60)
+    
+    status = 'Bot status:\nRunning time: ' + hours + ' hours ' + minutes + ' minutes ' + seconds + ' seconds'
+    // const statusString = `Bot status:\nRunning time: ${Math.floor((new Date().getTime() - startTime.getTime()) / 3600000)} hours`
+    sendBotMessage(status)
+})
+
+onSteamCommand('code', false, (msg, params) => {
+    
+    sendMessage(steamManager.getCode())
+})
+
+onSteamCommand('online', false, (msg, params) => {
+    
+    steamClient.setPersona(SteamUser.EPersonaState.Online)
+    sendBotMessage("Steam status: Online")
+})
+
+onSteamCommand('away', false, (msg, params) => {
+    
+    steamClient.setPersona(SteamUser.EPersonaState.Away)
+    sendBotMessage("Steam status: Away")
+})
+
+onSteamCommand('invisible', false, (msg, params) => {
+    
+    steamClient.setPersona(SteamUser.EPersonaState.Invisible)
+    sendBotMessage("Steam status: Invisible")
+})
+
+onSteamCommand('offline', false, (msg, params) => {
+    
+    steamClient.setPersona(SteamUser.EPersonaState.Offline)
+    sendBotMessage("Steam status: Offline")
+})
+
+onCommand('quit', false, (msg, params) => {
+    
+    logger.log('Stop bot')
+    bot.stopPolling()
+
+    sendBotMessage("Stopping the bot. Goodbye!", false)
+    quitAction()
+})
+const quitAction = async () => {
+    await timer(5000)
+    process.exit(0)
+}
+
+onCommand('test', false, (msg, params) => {
+    
+    sendMessage('This is a test')
+})
+
+onCommand('test', true, (msg, params) => {
+    
     sendMessage(JSON.stringify(params))
 })
+//#endregion
+
+
 
 //#region general
 bot.on('message', (msg) => {
@@ -303,13 +244,12 @@ bot.on('message', (msg) => {
         if (lastSteamID && settings.useAutoReply) {
             steamChatBot.sendMessage(lastSteamID, msg.text)
         } else {
-            sendBotMessage("No repicient for message")
+            sendBotMessage("Auto reply failed")
         }
     } catch (error) {
         logger.log('Error on message', error.message)
     }
 });
-
 
 const onReplyToMessage = (msg) => {
 
@@ -324,11 +264,13 @@ const onReplyToMessage = (msg) => {
 
     steamChatBot.sendMessage(steamID, text)
 }
+
 const getSteamIDFromReply = (msg) => {
     url = msg.entities[1].url
     id = url.substring(10, url.length - 1)
     return id
 }
+
 const getSteamIDFromReplyOld = (text) => {
 
     let split = text.split(": ")
