@@ -253,7 +253,7 @@ bot.on('message', (msg) => {
     try {
         const command = extractCommand(msg.text)
         
-        if (msg.text.startsWith('/')) {
+        if (msg.text.match(/^\/\w+/)) {
             commandList[command].callback(msg)
             lastSteamID = null
             return
