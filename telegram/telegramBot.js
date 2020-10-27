@@ -226,7 +226,7 @@ bot.on('message', (msg) => {
             return
         }
         
-        if (settings.relayStringMatch == null || msg.text.startsWith(settings.relayStringMatch)) {
+        if (settings.relayStringMatch != null && msg.text.startsWith(settings.relayStringMatch)) {
             lastSteamID = null
             commandForwarder.forwardCommand(msg.text, settings.relayStringMatch)
             return
@@ -380,6 +380,10 @@ const setSteamChatBot = (bot) => {
 }
 
 sendBotMessage('Started Steam to Telegram Bot')
+
+if (settings.relayStringMatch == null) {
+    sendBotMessage('Warning: Relay string match not assigned')
+}
 
 module.exports = {
     sendMessage,
