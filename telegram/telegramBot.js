@@ -1,5 +1,5 @@
-const TelegramBot = require('node-telegram-bot-api');
-const logger = require('../logger');
+const TelegramBot = require('node-telegram-bot-api')
+const logger = require('../logger')
 const jsonFiles = require('../tools/jsonFiles')
 const timer = require('../tools/timer')
 const commandForwarder = require('../commandForwarder')
@@ -14,60 +14,58 @@ let lastSteamID = null
 
 //#region commands
 //#region onCommandSetup
-let commandList = []
+let commandList = {}
 
 const commandBase = (needsSteam, isPublic, callback, msg) => {
     if (invalidState(msg, !needsSteam, isPublic)) {
         return
     }
     
-    params = msg.text.split(" ")
+    let params = msg.text.split(" ")
     params.shift()
+    
+    if (params.length == 0) {
+        params = null
+    }
     
     callback(msg, params)
 }
 
-const onSteamCommand = (command, bParams, callback) => {
-    onCommandBase(command, bParams, true, false, callback)
+const onSteamCommand = (command, callback, desc = null) => {
+    onCommandBase(command, true, false, callback, desc)
 }
 
-const onPublicCommand = (command, bParams, callback) => {
-    onCommandBase(command, bParams, false, true, callback)
+const onPublicCommand = (command, callback, desc = null) => {
+    onCommandBase(command, false, true, callback, desc)
 }
 
-const onCommand = (command, bParams, callback) => {
-    onCommandBase(command, bParams, false, false, callback)
+const onCommand = (command, callback, desc = null) => {
+    onCommandBase(command, false, false, callback, desc)
 }
 
-const onCommandBase = (command, bParams, needsSteam, isPublic, callback) => {
+const onCommandBase = (command, needsSteam, isPublic, callback, desc = null) => {
     if (command.includes(' ')) {
         logger.log('Command \'' + command + '\' has illegal characters')
+    } else if (commandList[command]) {
+        logger.log('Command \'' + command + '\' already exists')
     }
     
-    if (bParams) {
-        match = new RegExp('^/' + command + ' (.+)$', 'i')
-    } else {
-        match = new RegExp('^/' + command + '$', 'i')
-    }
+    const match = new RegExp('^/' + command + '( |$)', 'i')
     
-    commandList.push({command: command, regex: match, callback: commandBase.bind(null, needsSteam, isPublic, callback)})
+    commandList[command] = {command: command, desc: desc, regex: match, callback: commandBase.bind(null, needsSteam, isPublic, callback)}
 }
 
-const getCommand = (command) => {
-    res = commandList.find((value, index, array) => {
-        return value.regex.exec(command)
-    })
-    
-    if (res) {
-        return res
-    } else {
-        return null
-    }
+const extractCommand = (text) => {
+    return text.split(' ')[0].substring(1)
 }
 //#endregion
 
 //#region match
-onCommand('autologin', true, (msg, params) => {
+onCommand('autologin', (msg, params) => {
+    
+    if (!params) {
+        return
+    }
     
     try {
         const param = checkConfirmString(params[0])
@@ -86,7 +84,11 @@ onCommand('autologin', true, (msg, params) => {
     }
 })
 
-onCommand("autoreply", true, (msg, params) => {
+onCommand("autoreply", (msg, params) => {
+    
+    if (!params) {
+        return
+    }
     
     const param = checkConfirmString(params[0])
 
@@ -101,17 +103,23 @@ onCommand("autoreply", true, (msg, params) => {
     }
 })
 
-onCommand("defaultSteamState", true, (msg, params) => {
+onCommand("defaultSteamState", (msg, params) => {
     
-    const param = params[0]
+    if (!params) {
+        return
+    }
 
-    settings.defaultSteamState = param
+    settings.defaultSteamState = params[0]
     jsonFiles.saveSettings()
 
-    sendBotMessage("Set 'defaultSteamState' to " + param)
+    sendBotMessage("Set 'defaultSteamState' to " + params[0])
 })
 
-onCommand("relayStringMatch", true, (msg, params) => {
+onCommand("relayStringMatch", (msg, params) => {
+    
+    if (!params) {
+        return
+    }
     
     let param = params[0]
 
@@ -138,54 +146,88 @@ const checkConfirmString = (s) => {
     return -1
 }
 
-onCommand('help', false, (msg, params) => {
+onCommand('help', (msg, params) => {
+    let help
     
-    const helpString = `Available commands: \n\nto do`
-    sendBotMessage(helpString)
-})
+    if (params) {
+        help = commandList[params[0]]
+        cmd = help.command.charAt(0).toUpperCase() + help.command.slice(1)
+        
+        let desc
+        if (help.desc) {
+            desc = help.desc.charAt(0).toUpperCase() + help.desc.slice(1)
+        }
+        
+        if (help) {
+            help = '/' + cmd + '\n' + (desc ? desc : 'No description for command')
+        } else {
+            help = 'No command found'
+        }
+        
+    } else {
+        help = 'Available commands:'
+        for (const [key, value] of Object.entries(commandList)) {
+            cmd = key.charAt(0).toUpperCase() + key.slice(1)
+            let desc
+            
+            if (value.desc) {
+                desc = value.desc.charAt(0).toUpperCase() + value.desc.slice(1)
+            }
+            
+            help += '\n\n/' + cmd + (desc ? '\n' + desc : '')
+        }
+    }
+    
+    sendBotMessage(help)
+}, 'Shows available commands and their descriptions')
 
-onCommand('status', false, (msg, params) => {
+onCommand('status', (msg, params) => {
     
-    passed = (new Date().getTime() - startTime.getTime()) / 1000
-    hours = Math.floor(passed / 3600)
-    minutes = Math.floor(passed % 3600 / 60)
-    seconds = Math.floor(passed % 60)
+    const passed = (new Date().getTime() - startTime.getTime()) / 1000
+    const hours = Math.floor(passed / 3600)
+    const minutes = Math.floor(passed % 3600 / 60)
+    const seconds = Math.floor(passed % 60)
     
-    status = 'Bot status:\nRunning time: ' + hours + ' hours ' + minutes + ' minutes ' + seconds + ' seconds'
-    // const statusString = `Bot status:\nRunning time: ${Math.floor((new Date().getTime() - startTime.getTime()) / 3600000)} hours`
+    const status = 'Bot status:\nRunning time: ' + hours + ' hours ' + minutes + ' minutes ' + seconds + ' seconds'
     sendBotMessage(status)
 })
 
-onSteamCommand('code', false, (msg, params) => {
+onSteamCommand('code', (msg, params) => {
     
     sendMessage(steamManager.getCode())
-})
+}, 'Gets the steam auth code')
 
-onSteamCommand('online', false, (msg, params) => {
+onSteamCommand('online', (msg, params) => {
     
     steamClient.setPersona(SteamUser.EPersonaState.Online)
     sendBotMessage("Steam status: Online")
 })
 
-onSteamCommand('away', false, (msg, params) => {
+onSteamCommand('away', (msg, params) => {
     
     steamClient.setPersona(SteamUser.EPersonaState.Away)
     sendBotMessage("Steam status: Away")
 })
 
-onSteamCommand('invisible', false, (msg, params) => {
+onSteamCommand('busy', (msg, params) => {
+    
+    steamClient.setPersona(SteamUser.EPersonaState.Busy)
+    sendBotMessage("Steam status: Busy")
+})
+
+onSteamCommand('invisible', (msg, params) => {
     
     steamClient.setPersona(SteamUser.EPersonaState.Invisible)
     sendBotMessage("Steam status: Invisible")
 })
 
-onSteamCommand('offline', false, (msg, params) => {
+onSteamCommand('offline', (msg, params) => {
     
     steamClient.setPersona(SteamUser.EPersonaState.Offline)
     sendBotMessage("Steam status: Offline")
 })
 
-onCommand('quit', false, (msg, params) => {
+onCommand('quit', (msg, params) => {
     
     logger.log('Stop bot')
     bot.stopPolling()
@@ -198,14 +240,9 @@ const quitAction = async () => {
     process.exit(0)
 }
 
-onCommand('test', false, (msg, params) => {
+onCommand('test', (msg, params) => {
     
-    sendMessage('This is a test')
-})
-
-onCommand('test', true, (msg, params) => {
-    
-    sendMessage(JSON.stringify(params))
+    sendMessage('Testing')
 })
 //#endregion
 
@@ -214,10 +251,11 @@ onCommand('test', true, (msg, params) => {
 //#region general
 bot.on('message', (msg) => {
     try {
-        cmd = getCommand(msg.text)
+        const command = extractCommand(msg.text)
         
-        if (cmd) {
-            cmd.callback(msg)
+        if (msg.text.startsWith('/')) {
+            commandList[command].callback(msg)
+            lastSteamID = null
             return
         }
         
@@ -229,9 +267,6 @@ bot.on('message', (msg) => {
         if (settings.relayStringMatch != null && msg.text.startsWith(settings.relayStringMatch)) {
             lastSteamID = null
             commandForwarder.forwardCommand(msg.text, settings.relayStringMatch)
-            return
-        } else if (msg.text.startsWith('/')) {
-            lastSteamID = null
             return
         }
 
@@ -249,7 +284,7 @@ bot.on('message', (msg) => {
     } catch (error) {
         logger.log('Error on message', error.message)
     }
-});
+})
 
 const onReplyToMessage = (msg) => {
 
@@ -266,8 +301,8 @@ const onReplyToMessage = (msg) => {
 }
 
 const getSteamIDFromReply = (msg) => {
-    url = msg.entities[1].url
-    id = url.substring(10, url.length - 1)
+    const url = msg.entities[1].url
+    const id = url.substring(10, url.length - 1)
     return id
 }
 
@@ -322,7 +357,7 @@ const sendSteamMessageToTelegram = (message, steamID, nickname) => {
         return
     }
 
-    const toSend = steamID == null ? message : encapsulateMessage2(message, steamID, nickname, "Steam")
+    const toSend = steamID == null ? message : encapsulateMessage(message, steamID, nickname, "Steam")
 
     bot.sendMessage(settings.chatID, toSend, {parse_mode: "Markdown"}).then(sent => {
         if (steamID) {
@@ -334,9 +369,6 @@ const sendSteamMessageToTelegram = (message, steamID, nickname) => {
 }
 
 const encapsulateMessage = (message, senderID, nickname, messageType) => {
-    return "`(" + messageType + ") " + nickname + " : " + senderID + "`\n" + message
-}
-const encapsulateMessage2 = (message, senderID, nickname, messageType) => {
     return "`(`[" + messageType + "](id." + senderID + ")`) " + nickname + "`\n" + message
 }
 //#endregion
