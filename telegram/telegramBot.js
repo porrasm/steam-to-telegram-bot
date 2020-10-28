@@ -200,18 +200,6 @@ onCommand('status', (msg, params) => {
     sendBotMessage(status)
 })
 
-onCommand('settitle', (msg, params) => {
-
-    const paramString = extractParamString(msg.text)
-
-    if (!paramString) {
-        return
-    }
-
-    bot.setChatTitle(paramString)
-    sendBotMessage('Set chat title to: ' + paramString)
-}, 'Sets the Telegram chat title')
-
 onSteamCommand('code', (msg, params) => {
     
     sendMessage(steamManager.getCode())
