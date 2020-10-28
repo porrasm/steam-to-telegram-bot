@@ -3,6 +3,7 @@ const logger = require('../logger')
 const jsonFiles = require('../tools/jsonFiles')
 const timer = require('../tools/timer')
 const commandForwarder = require('../commandForwarder')
+const { text } = require('body-parser')
 let steamChatBot = null
 
 const username = process.env.TELEGRAM_USER
@@ -57,6 +58,13 @@ const onCommandBase = (command, needsSteam, isPublic, callback, desc = null) => 
 
 const extractCommand = (text) => {
     return text.split(' ')[0].substring(1)
+}
+const extractParamString = (text) => {
+    const index = text.indexOf(' ')
+    if (index < 0) {
+        return null
+    }
+    return text.substring(index)
 }
 //#endregion
 
@@ -192,6 +200,18 @@ onCommand('status', (msg, params) => {
     sendBotMessage(status)
 })
 
+onCommand('settitle', (msg, params) => {
+
+    const paramString = extractParamString(msg.text)
+
+    if (!paramString) {
+        return
+    }
+
+    bot.setChatTitle(paramString)
+    sendBotMessage('Set chat title to: ' + paramString)
+}, 'Sets the Telegram chat title')
+
 onSteamCommand('code', (msg, params) => {
     
     sendMessage(steamManager.getCode())
@@ -229,13 +249,14 @@ onSteamCommand('offline', (msg, params) => {
 
 onSteamCommand('setname', (msg, params) => {
     
-    if (!params) {
+    const paramString = extractParamString(msg.text)
+
+    if (!paramString) {
         return
     }
-    const split = msg.text.split('/setname ')
 
-    steamClient.setPersona(settings.defaultSteamState, split[1])
-    sendBotMessage("Steam status: Offline")
+    steamClient.setPersona(settings.defaultSteamState, paramString)
+    sendBotMessage("Set Steam name to: " + paramString)
 }, 'Sets the name of your Steam profile and sets your Steam state to the default state')
 
 onCommand('quit', (msg, params) => {
