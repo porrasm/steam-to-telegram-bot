@@ -82,7 +82,7 @@ onCommand('autologin', (msg, params) => {
     } catch(e) {
         logger.log('Error on autologin set', e.message)
     }
-})
+}, 'Sets the autologin setting on/off')
 
 onCommand("autoreply", (msg, params) => {
     
@@ -101,7 +101,7 @@ onCommand("autoreply", (msg, params) => {
         jsonFiles.saveSettings()
         sendBotMessage("Set 'useAutoReply' to false")
     }
-})
+}, 'Sets the Steam message autoreply setting on/off')
 
 onCommand("defaultSteamState", (msg, params) => {
     
@@ -113,16 +113,16 @@ onCommand("defaultSteamState", (msg, params) => {
     jsonFiles.saveSettings()
 
     sendBotMessage("Set 'defaultSteamState' to " + params[0])
-})
+}, 'Sets the default Steam state for the bot (Online, Offline, Away etc.)')
 
 onCommand("relayStringMatch", (msg, params) => {
     
-    if (!params) {
-        return
+    let param = null
+    
+    if (params) {
+        param = params[0]
     }
     
-    let param = params[0]
-
     if (param == null || param.length == 0) {
         param = null
     }
@@ -131,15 +131,15 @@ onCommand("relayStringMatch", (msg, params) => {
     jsonFiles.saveSettings()
 
     sendBotMessage("Set 'relayStringMatch' to " + param)
-})
+}, 'Sets the prefix string for the command relay functionality. Leave blank to relay everything.')
 
 const checkConfirmString = (s) => {
     s = s.toLowerCase()
-    if (s == 'yes' || s == 'true' || s == '1' || s == 'y') {
+    if (s == 'yes' || s == 'true' || s == '1' || s == 'y' || s == 'on') {
         return 1
     }
 
-    if (s == 'no' || s == 'false' || s == '0' || s == 'n') {
+    if (s == 'no' || s == 'false' || s == '0' || s == 'n' || s == 'off') {
         return 0
     }
 
@@ -227,6 +227,17 @@ onSteamCommand('offline', (msg, params) => {
     sendBotMessage("Steam status: Offline")
 })
 
+onSteamCommand('setname', (msg, params) => {
+    
+    if (!params) {
+        return
+    }
+    const split = msg.text.split('/setname ')
+
+    steamClient.setPersona(settings.defaultSteamState, split[1])
+    sendBotMessage("Steam status: Offline")
+}, 'Sets the name of your Steam profile and sets your Steam state to the default state')
+
 onCommand('quit', (msg, params) => {
     
     logger.log('Stop bot')
@@ -234,7 +245,7 @@ onCommand('quit', (msg, params) => {
 
     sendBotMessage("Stopping the bot. Goodbye!", false)
     quitAction()
-})
+}, 'Stops the application')
 const quitAction = async () => {
     await timer(5000)
     process.exit(0)
@@ -383,7 +394,7 @@ const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
     if (msg.chat.username != username && !allowPublicUser) {
         logger.log("Received message from incorrect user", msg.chat)
         bot.sendMessage(msg.chat.id, "Sorry. This is a private bot. In order to use it yourself you have to configure it manually. Check github_link for more info.")
-        sendBotMessage('Received message from incorrect user: ' + JSON.stringify(msg.chat))
+        sendBotMessage('Received message from incorrect user: ' + JSON.stringify(msg.chat) + "\nMessage: " + msg.text)
         return true
     } else {
         // proper init command???
