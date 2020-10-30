@@ -186,7 +186,7 @@ onCommand('help', (msg, params) => {
         }
     }
     
-    sendBotMessage(help)
+    sendMessage(help)
 }, 'Shows available commands and their descriptions')
 
 onCommand('status', (msg, params) => {
@@ -324,17 +324,6 @@ const getSteamIDFromReply = (msg) => {
     const url = msg.entities[1].url
     const id = url.substring(10, url.length - 1)
     return id
-}
-
-const getSteamIDFromReplyOld = (text) => {
-
-    let split = text.split(": ")
-    if (split.length < 1) {
-        return null
-    }
-
-    split = split[1].split("\n")
-    return split[0]
 }
 
 bot.onReplyToMessage(settings.chatID, null, (msg) => {
