@@ -52,8 +52,9 @@ const onCommandBase = (command, needsSteam, isPublic, callback, desc = null) => 
     }
     
     const match = new RegExp('^/' + command + '( |$)', 'i')
+    const action = commandBase.bind(null, needsSteam, isPublic, callback)
     
-    commandList[command] = {command: command, desc: desc, regex: match, callback: commandBase.bind(null, needsSteam, isPublic, callback)}
+    commandList[command.toLowerCase()] = {command: command, desc: desc, regex: match, callback: action}
 }
 
 const extractCommand = (text) => {
@@ -167,7 +168,7 @@ onCommand('help', (msg, params) => {
         }
         
         if (help) {
-            help = '/`' + cmd + '`\n' + (desc ? desc : 'No description for command')
+            help = '`/' + cmd + '`\n' + (desc ? desc : 'No description for command')
         } else {
             help = 'No command found'
         }
@@ -182,7 +183,7 @@ onCommand('help', (msg, params) => {
                 desc = value.desc.charAt(0).toUpperCase() + value.desc.slice(1)
             }
             
-            help += '\n\n/' + cmd + (desc ? '\n' + desc : '')
+            help += '\n\n`/' + cmd + (desc ? '`\n' + desc : '`')
         }
     }
     
@@ -274,7 +275,7 @@ bot.on('message', (msg) => {
         const command = extractCommand(msg.text)
         
         if (msg.text.match(/^\/\w+/)) {
-            commandList[command].callback(msg)
+            commandList[command.toLowerCase()].callback(msg)
             lastSteamID = null
             return
         }
