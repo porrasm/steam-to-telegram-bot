@@ -186,7 +186,7 @@ onCommand('help', (msg, params) => {
         }
     }
     
-    sendMessage(help)
+    sendBotMessage(help)
 }, 'Shows available commands and their descriptions')
 
 onCommand('status', (msg, params) => {
