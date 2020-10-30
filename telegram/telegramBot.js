@@ -167,7 +167,7 @@ onCommand('help', (msg, params) => {
         }
         
         if (help) {
-            help = '/' + cmd + '\n' + (desc ? desc : 'No description for command')
+            help = '/`' + cmd + '`\n' + (desc ? desc : 'No description for command')
         } else {
             help = 'No command found'
         }
