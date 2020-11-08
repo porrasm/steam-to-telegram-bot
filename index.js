@@ -49,7 +49,8 @@ const defaultSettings = () => {
         defaultSteamState: 'Offline',
         useAutoLogin: true,
         useAutoReply: true,
-        relayStringMatch: '//'
+        relayStringMatch: '//',
+        informLogin: true
     }
 }
 

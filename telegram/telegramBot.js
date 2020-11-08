@@ -112,6 +112,26 @@ onCommand("autoreply", (msg, params) => {
     }
 }, 'Sets the Steam message autoreply setting on/off')
 
+onCommand("informLogin", (msg, params) => {
+    
+    if (!params) {
+        return
+    }
+    
+    const param = checkConfirmString(params[0])
+
+    if (param == 1) {
+        settings.informLogin = true
+        jsonFiles.saveSettings()
+        sendBotMessage("Set 'informLogin' to true")
+    } else if (param == 0) {
+        settings.informLogin = false
+        jsonFiles.saveSettings()
+        sendBotMessage("Set 'inforLogin' to false")
+    }
+}, 'Sets the Steam message autoreply setting on/off')
+
+
 onCommand("defaultSteamState", (msg, params) => {
     
     if (!params) {
