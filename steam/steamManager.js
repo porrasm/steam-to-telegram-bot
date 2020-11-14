@@ -23,7 +23,7 @@ const autologin = () => {
 }
 const login = (accountName, password, twoFactorCode) => {
 
-    console.log("Login call stack: " + new Error().stack.toString().match(/Error(.*)/s)[1])
+    console.log("Login call stack: " + new Error().stack.toString().match(/Error((\n|\r|.)*)/)[1])
 
     logger.log("Logging in...", {
         accountName,
