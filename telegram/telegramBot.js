@@ -210,6 +210,10 @@ onCommand('help', (msg, params) => {
     sendBotMessage(help)
 }, 'Shows available commands and their descriptions')
 
+onCommand('login', (msg, params) => {
+    global.steamManager.autologin()
+})
+
 onCommand('status', (msg, params) => {
     
     const passed = (new Date().getTime() - startTime.getTime()) / 1000

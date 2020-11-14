@@ -23,7 +23,7 @@ const autologin = () => {
 }
 const login = (accountName, password, twoFactorCode) => {
 
-    console.log("Call login: ", new Error().stack)
+    console.log("Login call stack: " + new Error().stack.toString().match(/Error(.*)/s)[1])
 
     logger.log("Logging in...", {
         accountName,
@@ -83,15 +83,17 @@ const init = () => {
         }
     });
     
-    client.on('error', function(e) {
+    client.on('error', async function(e) {
         // Some error occurred during logon
-        logger.log("Error logging in", {
-            accountName,
-            password: "password",
-            twoFactorCode,
-            e
-        })
-        telegramBot.sendBotMessage("Error logging in on Steam as user: " + accountName)
+        if (e.toString().match(/^Error: LogonSessionReplaced/)) {
+            logger.log('Logon session was replaced, reconnecting...')
+            // wait long enough before retrying for the current auth code to expire
+            await timer(30000)
+            autologin()
+        } else {
+            logger.log('Error logging in to Steam', e)
+            telegramBot.sendBotMessage('Steam login failed')
+        }
     });
 
     chatBot.startChatBot()
