@@ -17,8 +17,8 @@ let lastSteamID = null
 //#region onCommandSetup
 let commandList = {}
 
-const commandBase = (needsSteam, isPublic, callback, msg) => {
-    if (invalidState(msg, !needsSteam, isPublic)) {
+const commandBase = (needsSteam, isPublic, callback, msg, power) => {
+    if (invalidState(msg, !needsSteam, isPublic, power)) {
         return
     }
     
@@ -52,7 +52,7 @@ const onCommandBase = (command, needsSteam, isPublic, callback, desc, power) => 
     }
     
     const match = new RegExp('^/' + command + '( |$)', 'i')
-    const action = commandBase.bind(null, needsSteam, isPublic, callback)
+    const action = commandBase.bind(null, needsSteam, isPublic, callback, power)
     
     commandList[command.toLowerCase()] = {command: command, desc: desc, regex: match, callback: action, power: power}
 }
