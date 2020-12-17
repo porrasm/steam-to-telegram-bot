@@ -175,6 +175,22 @@ const checkConfirmString = (s) => {
     return -1
 }
 
+onCommand('setGuestPower', (msg, params) => {
+
+    try {
+        const param = checkConfirmString(params[0])
+    
+        const val = Number(param)
+
+        settings.guestPower = val
+        jsonFiles.saveSettings()
+        sendBotMessage("Set 'guestPower' to " + param)
+    } catch(e) {
+        logger.log('Error on guestPower set', e.message)
+    }
+
+}, 'Set the current guest power')
+
 onCommand('help', (msg, params) => {
     let help
     
