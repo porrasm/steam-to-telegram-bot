@@ -17,7 +17,7 @@ let lastSteamID = null
 //#region onCommandSetup
 let commandList = {}
 
-const commandBase = (needsSteam, isPublic, callback, msg, power) => {
+const commandBase = (needsSteam, isPublic, callback, power, msg) => {
     if (invalidState(msg, !needsSteam, isPublic, power)) {
         return
     }
