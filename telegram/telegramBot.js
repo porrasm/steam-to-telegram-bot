@@ -70,6 +70,10 @@ const extractParamString = (text) => {
 //#endregion
 
 //#region match
+onCommand('settings', (msg, params) => {
+    sendBotMessage('Settings object:\n\n' + JSON.stringify(settings))
+}, 'Lists the current settings')
+
 onCommand('autologin', (msg, params) => {
     
     if (!params) {
