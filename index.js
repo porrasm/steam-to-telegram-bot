@@ -50,7 +50,8 @@ const defaultSettings = () => {
         useAutoLogin: true,
         useAutoReply: true,
         relayStringMatch: '//',
-        informLogin: true
+        informLogin: true,
+        guestPower: 0
     }
 }
 

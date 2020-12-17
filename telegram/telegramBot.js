@@ -32,19 +32,19 @@ const commandBase = (needsSteam, isPublic, callback, msg) => {
     callback(msg, params)
 }
 
-const onSteamCommand = (command, callback, desc = null) => {
-    onCommandBase(command, true, false, callback, desc)
+const onSteamCommand = (command, callback, desc, power = Infinity) => {
+    onCommandBase(command, true, false, callback, desc, power)
 }
 
-const onPublicCommand = (command, callback, desc = null) => {
-    onCommandBase(command, false, true, callback, desc)
+const onPublicCommand = (command, callback, desc, power) => {
+    onCommandBase(command, false, true, callback, desc, power)
 }
 
-const onCommand = (command, callback, desc = null) => {
-    onCommandBase(command, false, false, callback, desc)
+const onCommand = (command, callback, desc, power) => {
+    onCommandBase(command, false, false, callback, desc, power)
 }
 
-const onCommandBase = (command, needsSteam, isPublic, callback, desc = null) => {
+const onCommandBase = (command, needsSteam, isPublic, callback, desc, power) => {
     if (command.includes(' ')) {
         logger.log('Command \'' + command + '\' has illegal characters')
     } else if (commandList[command]) {
@@ -54,7 +54,7 @@ const onCommandBase = (command, needsSteam, isPublic, callback, desc = null) => 
     const match = new RegExp('^/' + command + '( |$)', 'i')
     const action = commandBase.bind(null, needsSteam, isPublic, callback)
     
-    commandList[command.toLowerCase()] = {command: command, desc: desc, regex: match, callback: action}
+    commandList[command.toLowerCase()] = {command: command, desc: desc, regex: match, callback: action, power: power}
 }
 
 const extractCommand = (text) => {
@@ -270,7 +270,7 @@ onSteamCommand('setname', (msg, params) => {
 
     steamClient.setPersona(settings.defaultSteamState, paramString)
     sendBotMessage("Set Steam name to: " + paramString)
-}, 'Sets the name of your Steam profile and sets your Steam state to the default state')
+}, 'Sets the name of your Steam profile and sets your Steam state to the default state', 1)
 
 onCommand('quit', (msg, params) => {
     
@@ -407,7 +407,7 @@ const encapsulateMessage = (message, senderID, nickname, messageType) => {
 }
 //#endregion
 
-const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
+const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false, requiredPower) => {
 
     if (msg.date * 1000 < startTime.getTime()) {
         logger.log('Not executing queued up command')
@@ -415,6 +415,11 @@ const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false) => {
     }
 
     if (msg.chat.username != username && !allowPublicUser) {
+
+        if (settings.guestPower <= requiredPower) {
+            return false
+        }
+
         logger.log("Received message from incorrect user", msg.chat)
         bot.sendMessage(msg.chat.id, "Sorry. This is a private bot. In order to use it yourself you have to configure it manually. Check github_link for more info.")
         sendBotMessage('Received message from incorrect user: ' + JSON.stringify(msg.chat) + "\nMessage: " + msg.text)
