@@ -36,11 +36,11 @@ const onSteamCommand = (command, callback, desc, power = Infinity) => {
     onCommandBase(command, true, false, callback, desc, power)
 }
 
-const onPublicCommand = (command, callback, desc, power) => {
+const onPublicCommand = (command, callback, desc, power = Infinity) => {
     onCommandBase(command, false, true, callback, desc, power)
 }
 
-const onCommand = (command, callback, desc, power) => {
+const onCommand = (command, callback, desc, power = Infinity) => {
     onCommandBase(command, false, false, callback, desc, power)
 }
 
@@ -196,6 +196,9 @@ onCommand('setGuestPower', (msg, params) => {
 }, 'Set the current guest power')
 
 onCommand('help', (msg, params) => {
+
+    isGuest = msg.chat.id != settings.chatID
+    
     let help
     
     if (params) {
@@ -214,21 +217,31 @@ onCommand('help', (msg, params) => {
         }
         
     } else {
-        help = 'Available commands:'
+        help = 'Available commands (guest power ' + settings.guestPower + '):'
         for (const [key, value] of Object.entries(commandList)) {
             cmd = key.charAt(0).toUpperCase() + key.slice(1)
-            let desc
+            let desc = ""
             
+            if (isGuest && settings.guestPower < value.power) {
+                continue
+            }
+
             if (value.desc) {
                 desc = value.desc.charAt(0).toUpperCase() + value.desc.slice(1)
             }
+
+            if (desc.length > 0) {
+                desc += "\n"
+            }
+
+            desc += "Power required: " + value.power
             
             help += '\n\n`/' + cmd + (desc ? '`\n' + desc : '`')
         }
     }
     
-    sendBotMessage(help)
-}, 'Shows available commands and their descriptions')
+    bot.sendMessage(msg.chat.id, "`" + help + "`", {parse_mode: "Markdown"})
+}, 'Shows available commands and their descriptions', 0)
 
 onCommand('login', (msg, params) => {
     global.steamManager.autologin()
@@ -436,12 +449,13 @@ const invalidState = (msg, checkOnlyUser = false, allowPublicUser = false, requi
 
     if (msg.chat.username != username && !allowPublicUser) {
 
-        if (settings.guestPower <= requiredPower) {
+        if (settings.guestPower >= requiredPower) {
+            bot.sendMessage(msg.chat.id, "Command accepted.")
             return false
         }
 
         logger.log("Received message from incorrect user", msg.chat)
-        bot.sendMessage(msg.chat.id, "Sorry. This is a private bot. In order to use it yourself you have to configure it manually. Check github_link for more info.")
+        bot.sendMessage(msg.chat.id, "You have insufficient power to use this command.")
         sendBotMessage('Received message from incorrect user: ' + JSON.stringify(msg.chat) + "\nMessage: " + msg.text)
         return true
     } else {
