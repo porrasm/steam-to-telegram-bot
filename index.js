@@ -1,3 +1,4 @@
+process.chdir(__dirname)
 const logger = require('./logger')
 global.logger = require('./logger')
 require('dotenv').config()
